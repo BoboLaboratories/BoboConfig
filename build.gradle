@@ -61,7 +61,6 @@ subprojects {
         include '**/*.java'
 
         properties {
-            projectName = 'BoboLibs'
             year = LocalDateTime.now().getYear()
         }
     }
