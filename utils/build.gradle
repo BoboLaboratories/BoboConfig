@@ -2,15 +2,14 @@ plugins {
     alias(libs.plugins.shadow)
 }
 
-version = '1.0.2'
+version = '1.0.0'
 
 repositories {
-    maven { url = 'https://repo.papermc.io/repository/maven-public/' }  // Paper
+//    maven { url = 'https://repo.papermc.io/repository/maven-public/' }  // Paper
 }
 
 dependencies {
-    implementation 'net.md-5:bungeecord-config:1.18-R0.1-SNAPSHOT'  // md_5 config
-    compileOnly project(':utils')                                   // utils module
+//    implementation 'net.md-5:bungeecord-config:1.18-R0.1-SNAPSHOT'  // md_5 config
 }
 
 publishing {

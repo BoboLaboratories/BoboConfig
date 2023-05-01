@@ -1,6 +1,6 @@
 rootProject.name = 'bobolibs'
 
-for (module in ['config']) {
+for (module in ['config', 'utils']) {
     include("${module}")
     project(":${module}").projectDir = file(module)
 }
