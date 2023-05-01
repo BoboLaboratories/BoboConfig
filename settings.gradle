@@ -1,0 +1,14 @@
+rootProject.name = 'bobolibs'
+
+for (module in ['config']) {
+    include("${module}")
+    project(":${module}").projectDir = file(module)
+}
+
+dependencyResolutionManagement {
+    versionCatalogs {
+        libs {
+            plugin('shadow', 'com.github.johnrengelman.shadow').version('7.1.2')
+        }
+    }
+}

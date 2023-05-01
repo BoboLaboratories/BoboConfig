@@ -1,0 +1,70 @@
+plugins {
+    id 'org.cadixdev.licenser' version '0.6.1' apply false
+    id 'java-library'
+}
+
+import java.time.LocalDateTime
+
+subprojects {
+    group = 'net.bobolabs'
+
+    apply plugin: 'java-library'
+    apply plugin: 'maven-publish'
+    apply plugin: 'org.cadixdev.licenser'
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        compileOnly 'org.jetbrains:annotations:24.0.1'
+
+        testImplementation platform('org.junit:junit-bom:5.9.1')
+        testImplementation 'org.junit.jupiter:junit-jupiter'
+    }
+
+    def targetJavaVersion = 17
+    java {
+        def javaVersion = JavaVersion.toVersion(targetJavaVersion)
+        sourceCompatibility = javaVersion
+        targetCompatibility = javaVersion
+        if (JavaVersion.current() < javaVersion) {
+            toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
+        }
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
+            options.release = targetJavaVersion
+        }
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+
+    publishing {
+        repositories {
+            maven {
+                name = 'BoboLabs'
+                url = 'https://repo.bobolabs.net/repository/maven-releases/'
+                credentials {
+                    username = project.property('bobolabs.user')
+                    password = project.property('bobolabs.key')
+                }
+            }
+        }
+    }
+
+    license {
+        header = rootProject.file('HEADER.txt')
+        include '**/*.java'
+
+        properties {
+            projectName = 'BoboLibs'
+            year = LocalDateTime.now().getYear()
+        }
+    }
+}
+
+tasks.jar.enabled = false
