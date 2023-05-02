@@ -67,5 +67,3 @@ subprojects {
 }
 
 tasks.jar.enabled = false
-
-task buildLicence(group: 'build', dependsOn: ['build'])
