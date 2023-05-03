@@ -1,0 +1,7 @@
+# Se questo commento esiste ma l'altro di Config1 no allora c'è un problema
+
+config2: "Ciao, sono config 2"
+
+lore:
+  - "Sono un config di test"
+  - "ma sono il secondo"
