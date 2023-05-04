@@ -1,6 +1,24 @@
+/*
+ * This file is part of BoboLibs.
+ *
+ * Copyright (C) 2023 BoboLabs.net
+ *
+ * BoboLibs is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * BoboLibs is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with BoboLibs. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package net.bobolabs.config;
 
-import net.bobolabs.config.annotation.Config;
 import net.bobolabs.utils.Reloadable;
 import org.jetbrains.annotations.NotNull;
 
@@ -11,23 +29,23 @@ import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.UnaryOperator;
 
-
 // A Glowy piace :D
-public final class ConfigManager<T extends Enum<T> & Configurable> implements Reloadable {
+public final class ConfigurationManager<T extends Enum<T> & Configurable> implements Reloadable {
+
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
     private final Map<T, Configuration> configurations;
     private final UnaryOperator<String> normalizer;
-    private final Class<T> clazz;
     private final File dataFolder;
+    private final Class<T> clazz;
 
-    public ConfigManager(@NotNull File dataFolder, @NotNull Class<T> clazz) {
-        this(clazz, dataFolder, String::toLowerCase);
+    public ConfigurationManager(@NotNull File dataFolder, @NotNull Class<T> clazz) {
+        this(dataFolder, clazz, String::toLowerCase);
     }
 
-    public ConfigManager(@NotNull Class<T> clazz,
-                         @NotNull File dataFolder,
-                         @NotNull UnaryOperator<@NotNull String> normalizer) {
+    public ConfigurationManager(@NotNull File dataFolder,
+                                @NotNull Class<T> clazz,
+                                @NotNull UnaryOperator<@NotNull String> normalizer) {
         this.configurations = new EnumMap<>(clazz);
         this.clazz = clazz;
         this.dataFolder = dataFolder;

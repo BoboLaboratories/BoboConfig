@@ -17,17 +17,14 @@
  * along with BoboLibs. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package net.bobolabs.utils;
+package net.bobolabs.config;
 
-public interface Reloadable {
+public @interface Config {
 
-    void onEnable();
+    String path() default "";
 
-    void onDisable();
+    boolean autoSave() default false;
 
-    default void reload() {
-        onDisable();
-        onEnable();
-    }
+    String defaultResource() default "";
 
 }

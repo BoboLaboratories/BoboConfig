@@ -1,5 +1,4 @@
 plugins {
-    id 'java-test-fixtures'
     alias(libs.plugins.shadow)
 }
 

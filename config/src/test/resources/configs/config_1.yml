@@ -1,8 +1,0 @@
-config1: "Ciao, sono config 1"
-
-lore:
-  - "Sono un config di test"
-  - "e sono il primo"
-  - "(Di conseguenza il migliore)"
-
-# Vediamo se questo commento viene preservato alla scrittura :D
