@@ -5,8 +5,8 @@ We write code, you enjoy it :D
 
 <big><pre>
 &nbsp;[**BoboLabs**](https://www.bobolabs.net)
-&nbsp;&nbsp;&nbsp;.add([**Glowy**]())
-&nbsp;&nbsp;&nbsp;.add([**Stami**]())
+&nbsp;&nbsp;&nbsp;.add([**Glowy**](https://www.fabionebbia.com))
+&nbsp;&nbsp;&nbsp;.add([**Stami**](https://stami.andrearaguso.com/))
 &nbsp;&nbsp;&nbsp;.code()
 </pre></big>
 
