@@ -24,7 +24,6 @@ import net.bobolabs.utils.Reloadable;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.EnumMap;
 import java.util.Map;
@@ -32,7 +31,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.UnaryOperator;
 
 // A Glowy piace :D
-public final class ConfigurationManager<T extends Enum<T> & Configurable> implements Reloadable {
+public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescriptor> implements Reloadable {
 
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
@@ -59,8 +58,8 @@ public final class ConfigurationManager<T extends Enum<T> & Configurable> implem
         lock.writeLock().lock();
         try {
             for (Field field : clazz.getFields()) {
-                T key = Enum.valueOf(clazz, field.getName());
                 Config annotation = field.getDeclaredAnnotation(Config.class);
+                T key = Enum.valueOf(clazz, field.getName());
                 if (annotation != null) {
                     String path = annotation.path();
                     path = path.isEmpty() ? key.name() + ".yml" : path;
@@ -94,7 +93,7 @@ public final class ConfigurationManager<T extends Enum<T> & Configurable> implem
         }
     }
 
-    public @NotNull Configuration get(@NotNull T config) {
+    public @NotNull Configuration configuration(@NotNull T config) {
         lock.readLock().lock();
         try {
             return configurations.get(config);
