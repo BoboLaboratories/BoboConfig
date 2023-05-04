@@ -4,14 +4,6 @@ plugins {
 
 version = '1.0.0'
 
-repositories {
-//    maven { url = 'https://repo.papermc.io/repository/maven-public/' }  // Paper
-}
-
-dependencies {
-//    implementation 'net.md-5:bungeecord-config:1.18-R0.1-SNAPSHOT'  // md_5 config
-}
-
 publishing {
     publications {
         shadow(MavenPublication) { publication ->

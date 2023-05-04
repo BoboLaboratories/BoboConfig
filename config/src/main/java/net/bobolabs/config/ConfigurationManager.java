@@ -19,10 +19,12 @@
 
 package net.bobolabs.config;
 
+import com.google.common.base.Strings;
 import net.bobolabs.utils.Reloadable;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.EnumMap;
 import java.util.Map;
@@ -57,16 +59,21 @@ public final class ConfigurationManager<T extends Enum<T> & Configurable> implem
         lock.writeLock().lock();
         try {
             for (Field field : clazz.getFields()) {
+                T key = Enum.valueOf(clazz, field.getName());
                 Config annotation = field.getDeclaredAnnotation(Config.class);
                 if (annotation != null) {
                     String path = annotation.path();
+                    path = path.isEmpty() ? key.name() + ".yml" : path;
+                    path = normalizer.apply(path);
+
+                    String defaultResource = annotation.defaultResource();
+                    defaultResource = Strings.isNullOrEmpty(defaultResource) ? path : defaultResource;
+
                     Configuration config = ConfigurationBuilder
-                            .fromFile(dataFolder, path.isEmpty() ? normalizer.apply(path) : path)
-                            .saveDefaultFromResource(annotation.defaultResource())
+                            .fromFile(dataFolder, path)
+                            .saveDefaultFromResource(defaultResource)
                             .autoSave(annotation.autoSave())
                             .build();
-
-                    T key = Enum.valueOf(clazz, field.getName());
                     configurations.put(key, config);
                 } else {
                     // TODO: logger warn
@@ -87,7 +94,7 @@ public final class ConfigurationManager<T extends Enum<T> & Configurable> implem
         }
     }
 
-    public @NotNull Configuration getConfig(@NotNull T config) {
+    public @NotNull Configuration get(@NotNull T config) {
         lock.readLock().lock();
         try {
             return configurations.get(config);
