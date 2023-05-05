@@ -1,13 +1,14 @@
-# BoboLabs
+### BoboLabs
 
-We're both Bobos, one is also a [Glowy](https://www.fabionebbia.com) and the other is a [Stami](https://stami.andrearaguso.com/).  
 We write code, you enjoy it :D
 
 <big><pre>
-&nbsp;[**BoboLabs**](https://www.bobolabs.net)
-&nbsp;&nbsp;&nbsp;.add([**Glowy**](https://www.fabionebbia.com))
-&nbsp;&nbsp;&nbsp;.add([**Stami**](https://stami.bobolabs.net/))
-&nbsp;&nbsp;&nbsp;.code()
+&nbsp;wonders =&nbsp;[**BoboLabs**](https://www.bobolabs.net)
+&nbsp;&nbsp;&nbsp;.add([**glowy**](https://www.fabionebbia.com))
+&nbsp;&nbsp;&nbsp;.add([**stami**](https://stami.andrearaguso.com/))
+&nbsp;&nbsp;&nbsp;.code();
+&nbsp;
+&nbsp;you.enjoy(wonders);
 </pre></big>
 
 <br>
@@ -18,17 +19,6 @@ A powerful and flexible cross-platform wrapper around [md_5 configuration librar
 by [SimplixStorage](https://github.com/Simplix-Softworks/SimplixStorage) which also provides reload and auto-save capabilities. Also very
 ✨professional✨.
 
-    Spigot/Paper    | BungeeCord | Velocity | Vanilla Java | Folia|
+|    Spigot/Paper    | BungeeCord | Velocity | Vanilla Java | Folia|
 :------------------:|:----------:|:--------:|:-----:|:------:|
- :heavy_check_mark: |:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|💡|
-
-<br>
-
-### Legend
-
-- :heavy_check_mark: full support
-- 💡 experimental
-- **[*]()** &nbsp;see usage notes
-
-<!-- **[*]()** -->
-<!-- 🟢 🟡 🔴 :heavy_check_mark: ❌ 💡 -->
+| :heavy_check_mark: |:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|💡|
