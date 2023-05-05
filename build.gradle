@@ -11,13 +11,16 @@ group = 'net.bobolabs.config'
 version = '1.0.0'
 
 repositories {
-    maven { url = 'https://repo.papermc.io/repository/maven-public/' }  // Paper
+    maven { url = 'https://repo.bobolabs.net/repository/maven-public/' }    // :D
+    maven { url = 'https://repo.papermc.io/repository/maven-public/' }      // Paper
 }
 
 dependencies {
-    compileOnly 'org.yaml:snakeyaml:1.33-SNAPSHOT'                      // snakeyaml
+    compileOnly 'net.bobolabs:core:[0.0.1,)'                                  // core module
+    compileOnly 'org.yaml:snakeyaml:1.33-SNAPSHOT'                          // snakeyaml
+    compileOnly 'org.jetbrains:annotations:24.0.1'                          // JetBrains annotation
 
-    implementation 'net.md-5:bungeecord-config:1.19-R0.1-SNAPSHOT'      // md_5 config
+    implementation 'net.md-5:bungeecord-config:1.19-R0.1-SNAPSHOT'          // md_5 config
 }
 
 def targetJavaVersion = 17
