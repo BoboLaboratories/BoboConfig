@@ -22,7 +22,6 @@
 
 package config;
 
-import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -49,11 +48,6 @@ public final class ConfigurationBuilder {
 
     public @NotNull ConfigurationBuilder autoSave(boolean autoSave) {
         this.autoSave = autoSave;
-        return this;
-    }
-
-    public @NotNull ConfigurationBuilder saveDefaultResource(boolean saveDefaultResource) {
-        this.saveDefaultResource = saveDefaultResource;
         return this;
     }
 

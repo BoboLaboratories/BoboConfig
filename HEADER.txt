@@ -1,8 +1,8 @@
 This file is part of ${projectName}.
 
 Copyright (C) ${year} BoboLabs.net
-Copyright (C) ${year} Fabio Nebbia (https://glowy.bobolabs.net)
 Copyright (C) ${year} Mattia Mignogna (https://stami.bobolabs.net)
+Copyright (C) ${year} Fabio Nebbia (https://glowy.bobolabs.net)
 Copyright (C) ${year} Third party contributors
 
 ${projectName} is free software: you can redistribute it and/or modify
