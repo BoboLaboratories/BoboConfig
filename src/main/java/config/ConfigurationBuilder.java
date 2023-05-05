@@ -22,6 +22,7 @@
 
 package config;
 
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -63,6 +64,14 @@ public final class ConfigurationBuilder {
     }
 
     public @NotNull Configuration build() {
+        if (file.isDirectory()) {
+            throw new IllegalArgumentException(file + " is a directory");
+        }
+
+        if (!saveDefaultResource && !file.exists()) {
+            throw new IllegalStateException("File dose not exist");
+        }
+
         return new Configuration(file, defaultResource, saveDefaultResource, autoSave);
     }
 

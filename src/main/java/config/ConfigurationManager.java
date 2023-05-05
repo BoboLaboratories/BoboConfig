@@ -25,6 +25,7 @@ package config;
 import com.google.common.base.Strings;
 import net.bobolabs.core.Reloadable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
@@ -39,7 +40,7 @@ public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescrip
 
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
-    private final Map<T, Configuration> configurations;
+    private final Map<@NotNull T, @Nullable Configuration> configurations;
     private final UnaryOperator<String> normalizer;
     private final File dataFolder;
     private final Class<T> clazz;
@@ -104,13 +105,23 @@ public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescrip
         }
     }
 
-    public @NotNull Configuration configuration(@NotNull T config) {
+    public @Nullable Configuration optionalConfiguration(@NotNull T config) {
         lock.readLock().lock();
         try {
             return configurations.get(config);
         } finally {
             lock.readLock().unlock();
         }
+    }
+
+    public @NotNull Configuration configuration(@NotNull T config) {
+
+//        lock.readLock().lock();
+//        try {
+//            return configurations.get(config);
+//        } finally {
+//            lock.readLock().unlock();
+//        }
     }
 
 
