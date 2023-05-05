@@ -17,7 +17,7 @@
  * along with BoboLibs. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package net.bobolabs.config;
+package config;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -28,6 +28,7 @@ public final class ConfigurationBuilder {
     private final File file;
 
     private boolean autoSave = false;
+    private boolean saveDefaultResource = false;
     private String defaultResource = null;
 
     private ConfigurationBuilder(@NotNull File file) {
@@ -47,13 +48,19 @@ public final class ConfigurationBuilder {
         return this;
     }
 
-    public @NotNull ConfigurationBuilder saveDefaultFromResource(@NotNull String defaultResource) {
+    public @NotNull ConfigurationBuilder saveDefaultResource(boolean saveDefaultResource) {
+        this.saveDefaultResource = saveDefaultResource;
+        return this;
+    }
+
+    public @NotNull ConfigurationBuilder setDefaultResource(@NotNull String defaultResource) {
+        this.saveDefaultResource = true;
         this.defaultResource = defaultResource;
         return this;
     }
 
     public @NotNull Configuration build() {
-        return new Configuration(file, defaultResource, autoSave);
+        return new Configuration(file, defaultResource, saveDefaultResource, autoSave);
     }
 
 }

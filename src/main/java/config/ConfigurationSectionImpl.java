@@ -17,7 +17,7 @@
  * along with BoboLibs. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package net.bobolabs.config;
+package config;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;

@@ -17,7 +17,7 @@
  * along with BoboLibs. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package net.bobolabs.config;
+package config;
 
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
@@ -37,13 +37,15 @@ public final class Configuration implements ConfigurationSection {
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
     private final ConfigurationProvider provider;
+    private final boolean saveDefaultResource;
     private final boolean autoSave;
     private final File file;
 
     private ConfigurationSectionImpl section;
 
-    Configuration(@NotNull File file, @Nullable String defaultResource, boolean autoSave) {
+    Configuration(@NotNull File file, @Nullable String defaultResource, boolean saveDefaultResource, boolean autoSave) {
         this.provider = ConfigurationProvider.getProvider(YamlConfiguration.class);
+        this.saveDefaultResource = saveDefaultResource;
         this.autoSave = autoSave;
         this.file = file;
 
@@ -51,13 +53,20 @@ public final class Configuration implements ConfigurationSection {
             file.getParentFile().mkdirs();
         }
 
-        if (defaultResource != null && !file.exists()) {
-            try (InputStream in = getClass().getResourceAsStream("/" + defaultResource)) {
-                if (in != null) {
-                    Files.copy(in, file.toPath());
+        if (!file.exists()) {
+            if (saveDefaultResource) {
+                if (defaultResource == null) {
+                    defaultResource = file.getName();
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
+                try (InputStream in = getClass().getResourceAsStream("/" + defaultResource)) {
+                    if (in != null) {
+                        Files.copy(in, file.toPath());
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                // TODO: cabbo vuoi da me?
             }
         }
 

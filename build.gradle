@@ -1,90 +1,83 @@
+import java.time.LocalDateTime
+
 plugins {
-    id 'org.cadixdev.licenser' version '0.6.1' apply false
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+    id 'org.cadixdev.licenser' version '0.6.1'
+    id 'maven-publish'
     id 'java-library'
 }
 
-import java.time.LocalDateTime
-
-
-subprojects {
-    group = 'net.bobolabs'
-
-    apply plugin: 'java-library'
-    apply plugin: 'maven-publish'
-    apply plugin: 'org.cadixdev.licenser'
-
-    repositories {
-        mavenCentral()
-    }
-
-    dependencies {
-        compileOnly 'org.jetbrains:annotations:24.0.1'
-
-        testImplementation platform('org.junit:junit-bom:5.9.1')
-        testImplementation 'org.junit.jupiter:junit-jupiter'
-    }
-
-    def targetJavaVersion = 17
-    java {
-        def javaVersion = JavaVersion.toVersion(targetJavaVersion)
-        sourceCompatibility = javaVersion
-        targetCompatibility = javaVersion
-        if (JavaVersion.current() < javaVersion) {
-            toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
-        }
-    }
-
-    tasks.withType(JavaCompile).configureEach {
-        if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
-            options.release = targetJavaVersion
-        }
-    }
-
-    test {
-        useJUnitPlatform()
-    }
-
-    publishing {
-        repositories {
-            maven {
-                name = 'BoboLabs'
-                url = 'https://repo.bobolabs.net/repository/maven-releases/'
-                credentials {
-                    username = project.property('bobolabs.user')
-                    password = project.property('bobolabs.key')
-                }
-            }
-        }
-    }
-
-    license {
-        header = rootProject.file('HEADER.txt')
-        include '**/*.java'
-
-        properties {
-            year = LocalDateTime.now().getYear()
-        }
-    }
-}
+group = 'net.bobolabs.config'
+version = '1.0.0'
 
 repositories {
     maven { url = 'https://repo.papermc.io/repository/maven-public/' }  // Paper
-    mavenCentral()
 }
 
 dependencies {
-    testImplementation 'org.yaml:snakeyaml:1.33-SNAPSHOT'
-    testImplementation 'net.md-5:bungeecord-config:1.18-R0.1-SNAPSHOT'  // md_5 config
-    testImplementation platform('org.junit:junit-bom:5.9.1')
-    testImplementation 'org.jetbrains:annotations:24.0.1'
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation project(":utils")
-    testImplementation project(":config")
+    compileOnly 'org.yaml:snakeyaml:1.33-SNAPSHOT'                      // snakeyaml
+
+    implementation 'net.md-5:bungeecord-config:1.19-R0.1-SNAPSHOT'      // md_5 config
+}
+
+def targetJavaVersion = 17
+java {
+    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
+    if (JavaVersion.current() < javaVersion) {
+        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
+        options.release = targetJavaVersion
+    }
 }
 
 test {
     useJUnitPlatform()
 }
 
+publishing {
+    repositories {
+        maven {
+            name = 'BoboLabs'
+            url = 'https://repo.bobolabs.net/repository/maven-public/'
+            credentials {
+                username = project.property('bobolabs.user')
+                password = project.property('bobolabs.key')
+            }
+        }
+    }
+    publications {
+        shadow(MavenPublication) { publication ->
+            groupId = project.group
+            artifactId = project.name
+            version = project.version
+
+            project.shadow.component(publication)
+        }
+    }
+}
+
+shadowJar {
+    archiveBaseName.set(project.name)
+    archiveClassifier.set('')
+
+    from "${project.rootDir}/LICENSE.txt"
+}
+
+license {
+    header = project.file('HEADER.txt')
+    include '**/*.java'
+
+    properties {
+        year = LocalDateTime.now().getYear()
+        projectName = project.name
+    }
+}
 
 tasks.jar.enabled = false
+tasks.build.dependsOn(shadowJar)

@@ -17,9 +17,9 @@
  * along with BoboLibs. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package net.bobolabs.config;
+package config;
 
-public interface ConfigurationDescriptor {
+public interface ConfigurationDescription {
 
 }
 

@@ -17,12 +17,23 @@
  * along with BoboLibs. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package net.bobolabs.utils;
+package config;
 
-import org.jetbrains.annotations.NotNull;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-public interface Identifiable<I> {
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface Config {
 
-    @NotNull I getId();
+    String path() default ConfigDefaults.PATH;
+
+    String defaultResource() default ConfigDefaults.RESOURCE;
+
+    boolean autoSave() default ConfigDefaults.AUTO_SAVE;
+
+    boolean saveDefaultResource() default ConfigDefaults.SAVE_DEFAULT_RESOURCE;
 
 }
