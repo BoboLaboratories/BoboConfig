@@ -28,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
 
 public interface ConfigurationSection {
 
@@ -127,5 +128,9 @@ public interface ConfigurationSection {
     // Extra utils not included in the native md_5 (bungee) configuration library
 
     <T extends Enum<T>> T getEnum(@NotNull String path, @NotNull Class<T> enumClass);
+
+    // TODO <T> T getObject(@NotNull String path, @NotNull Function<ConfigurationSection, T> parser);
+
+    // TODO <T> T getObjectList(@NotNull String path, @NotNull Function<ConfigurationSection, T> parser);
 
 }
