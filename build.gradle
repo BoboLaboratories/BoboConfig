@@ -16,15 +16,11 @@ repositories {
 }
 
 dependencies {
-    compileOnly 'net.bobolabs:core:[0.0.1,)'                                // core module
+    compileOnly 'net.bobolabs:core:[0.0.4,)'                                // core module
     compileOnly 'org.yaml:snakeyaml:1.33-SNAPSHOT'                          // snakeyaml
     compileOnly 'org.jetbrains:annotations:24.0.1'                          // JetBrains annotation
 
-    implementation('net.md-5:bungeecord-config:1.19-R0.1-SNAPSHOT') {       // md_5 config
-        exclude group: 'javax.*'
-        exclude group: 'com.google.*'
-        exclude group: 'org.checkerframework.*'
-    }
+    implementation 'net.md-5:bungeecord-config:1.19-R0.1-SNAPSHOT'          // md_5 config
 
     // Test
     testImplementation 'net.bobolabs:core:[0.0.1,)'
@@ -81,9 +77,11 @@ shadowJar {
     relocate 'net.md_5.bungee.config', 'net.bobolabs.libs.net.md_5.bungee.config'
 
     dependencies {
-        exclude(dependency {
-            !(it.moduleGroup.startsWith('net.bobolabs') || it.moduleGroup.startsWith('net.md-5'))
-        })
+        exclude(dependency('com.google.guava:'))
+        exclude(dependency('com.google.j2objc:'))
+        exclude(dependency('com.google.errorprone:'))
+        exclude(dependency('com.google.code.findbugs:'))
+        exclude(dependency('org.checkerframework:'))
     }
 
     from "${project.rootDir}/LICENSE.txt"
