@@ -19,6 +19,6 @@ A powerful and flexible cross-platform wrapper around [md_5 configuration librar
 by [SimplixStorage](https://github.com/Simplix-Softworks/SimplixStorage) which also provides reload and auto-save capabilities. Also very
 ✨professional✨.
 
-|    Spigot/Paper    | BungeeCord | Velocity | Vanilla Java | Folia|
-:------------------:|:----------:|:--------:|:-----:|:------:|
-| :heavy_check_mark: |:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|💡|
+|    Spigot/Paper    |     BungeeCord     |      Velocity      |    Vanilla Java    | Folia |
+:------------------:|:------------------:|:------------------:|:------------------:|:-----:|
+| :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |  💡   |

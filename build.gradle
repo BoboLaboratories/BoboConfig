@@ -7,8 +7,8 @@ plugins {
     id 'java-library'
 }
 
-group = 'net.bobolabs.config'
-version = '1.0.0'
+group = 'net.bobolabs'
+version = '1.0.2'
 
 repositories {
     maven { url = 'https://repo.bobolabs.net/repository/maven-public/' }    // :D
@@ -20,7 +20,11 @@ dependencies {
     compileOnly 'org.yaml:snakeyaml:1.33-SNAPSHOT'                          // snakeyaml
     compileOnly 'org.jetbrains:annotations:24.0.1'                          // JetBrains annotation
 
-    implementation 'net.md-5:bungeecord-config:1.19-R0.1-SNAPSHOT'          // md_5 config
+    implementation('net.md-5:bungeecord-config:1.19-R0.1-SNAPSHOT') {       // md_5 config
+        exclude group: 'javax.*'
+        exclude group: 'com.google.*'
+        exclude group: 'org.checkerframework.*'
+    }
 
     // Test
     testImplementation 'net.bobolabs:core:[0.0.1,)'
@@ -52,7 +56,7 @@ publishing {
     repositories {
         maven {
             name = 'BoboLabs'
-            url = 'https://repo.bobolabs.net/repository/maven-public/'
+            url = 'https://repo.bobolabs.net/repository/maven-releases/'
             credentials {
                 username = project.property('bobolabs.user')
                 password = project.property('bobolabs.key')
@@ -73,6 +77,14 @@ publishing {
 shadowJar {
     archiveBaseName.set(project.name)
     archiveClassifier.set('')
+
+    relocate 'net.md_5.bungee.config', 'net.bobolabs.libs.net.md_5.bungee.config'
+
+    dependencies {
+        exclude(dependency {
+            !(it.moduleGroup.startsWith('net.bobolabs') || it.moduleGroup.startsWith('net.md-5'))
+        })
+    }
 
     from "${project.rootDir}/LICENSE.txt"
 }

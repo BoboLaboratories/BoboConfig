@@ -1,26 +1,26 @@
 /*
- * This file is part of BoboConfig.
+ * This file is part of config.
  *
  * Copyright (C) 2023 BoboLabs.net
- * Copyright (C) 2023 Fabio Nebbia (https://glowy.bobolabs.net)
  * Copyright (C) 2023 Mattia Mignogna (https://stami.bobolabs.net)
+ * Copyright (C) 2023 Fabio Nebbia (https://glowy.bobolabs.net)
  * Copyright (C) 2023 Third party contributors
  *
- * BoboConfig is free software: you can redistribute it and/or modify
+ * config is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * BoboConfig is distributed in the hope that it will be useful,
+ * config is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with BoboConfig.  If not, see <http://www.gnu.org/licenses/>.
+ * along with config.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package config;
+package net.bobolabs.config;
 
 import com.google.common.base.Strings;
 import net.bobolabs.core.Reloadable;
@@ -59,7 +59,7 @@ public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescrip
     }
 
     @Override
-    public void enable() {
+    public void onEnable() {
         lock.writeLock().lock();
         try {
             for (Field field : clazz.getFields()) {
@@ -83,7 +83,7 @@ public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescrip
                 // Build configuration
                 Configuration configuration = ConfigurationBuilder
                         .fromFile(dataFolder, path)
-                        .saveDefaultResource(annotation.saveDefaultResource())
+                        .setDefaultResource(annotation.defaultResource())
                         .setDefaultResource(defaultResource)
                         .autoSave(annotation.autoSave())
                         .build();
@@ -96,7 +96,7 @@ public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescrip
     }
 
     @Override
-    public void disable() {
+    public void onDisable() {
         lock.writeLock().lock();
         try {
             configurations.clear();
@@ -115,13 +115,12 @@ public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescrip
     }
 
     public @NotNull Configuration configuration(@NotNull T config) {
-
-//        lock.readLock().lock();
-//        try {
-//            return configurations.get(config);
-//        } finally {
-//            lock.readLock().unlock();
-//        }
+        lock.readLock().lock();
+        try {
+            return configurations.get(config);
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
 
