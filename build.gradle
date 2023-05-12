@@ -93,7 +93,7 @@ license {
 
     properties {
         year = LocalDateTime.now().getYear()
-        projectName = project.name
+        projectName = 'BoboConfig'
     }
 }
 
