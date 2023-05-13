@@ -22,6 +22,7 @@
 
 package net.bobolabs.config;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,87 +42,95 @@ public interface ConfigurationSection {
 
     ConfigurationSection getSection(@NotNull String path);
 
+    /**
+     * @deprecated use {@link #getKeys(boolean)} instead.
+     */
     @Contract("-> new")
-    @NotNull
-    Collection<String> getKeys();
+    @Deprecated(forRemoval = true, since = "1.1.0")
+    @ApiStatus.ScheduledForRemoval(inVersion = "2.0.0")
+    default @NotNull Collection<String> getKeys() {
+        return getKeys(false);
+    }
+
+    @Contract("-> new")
+    @NotNull Collection<String> getKeys(boolean deep);
 
     byte getByte(@NotNull String path);
 
     byte getByte(@NotNull String path, byte def);
 
+
     @Contract("_ -> new")
-    @NotNull
-    List<Byte> getByteList(@NotNull String path);
+    @NotNull List<Byte> getByteList(@NotNull String path);
 
     short getShort(@NotNull String path);
 
     short getShort(@NotNull String path, short def);
 
+
     @Contract("_ -> new")
-    @NotNull
-    List<Short> getShortList(@NotNull String path);
+    @NotNull List<Short> getShortList(@NotNull String path);
 
     int getInt(@NotNull String path);
 
     int getInt(@NotNull String path, int def);
 
+
     @Contract("_ -> new")
-    @NotNull
-    List<Integer> getIntList(@NotNull String path);
+    @NotNull List<Integer> getIntList(@NotNull String path);
 
     long getLong(@NotNull String path);
 
     long getLong(@NotNull String path, long def);
 
+
     @Contract("_ -> new")
-    @NotNull
-    List<Long> getLongList(@NotNull String path);
+    @NotNull List<Long> getLongList(@NotNull String path);
 
     float getFloat(@NotNull String path);
 
     float getFloat(@NotNull String path, float def);
 
+
     @Contract("_ -> new")
-    @NotNull
-    List<Float> getFloatList(@NotNull String path);
+    @NotNull List<Float> getFloatList(@NotNull String path);
 
     double getDouble(@NotNull String path);
 
     double getDouble(@NotNull String path, double def);
 
+
     @Contract("_ -> new")
-    @NotNull
-    List<Double> getDoubleList(@NotNull String path);
+    @NotNull List<Double> getDoubleList(@NotNull String path);
 
     boolean getBoolean(@NotNull String path);
 
     boolean getBoolean(@NotNull String path, boolean def);
 
+
     @Contract("_ -> new")
-    @NotNull
-    List<Boolean> getBooleanList(@NotNull String path);
+    @NotNull List<Boolean> getBooleanList(@NotNull String path);
 
     char getChar(@NotNull String path);
 
     char getChar(@NotNull String path, char def);
 
+
     @Contract("_ -> new")
-    @NotNull
-    List<Character> getCharList(@NotNull String path);
+    @NotNull List<Character> getCharList(@NotNull String path);
 
     String getString(@NotNull String path);
 
     String getString(@NotNull String path, String def);
 
+
     @Contract("_ -> new")
-    @NotNull
-    List<String> getStringList(@NotNull String path);
+    @NotNull List<String> getStringList(@NotNull String path);
 
-    @NotNull
-    List<?> getList(@NotNull String path);
+    @NotNull List<?> getList(@NotNull String path);
 
-    @NotNull
-    List<?> getList(@NotNull String path, List<?> def);
+
+    @NotNull List<?> getList(@NotNull String path, List<?> def);
 
 
     // Extra utils not included in the native md_5 (bungee) configuration library

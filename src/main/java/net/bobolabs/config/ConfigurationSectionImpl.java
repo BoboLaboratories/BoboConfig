@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 
 final class ConfigurationSectionImpl implements ConfigurationSection {
@@ -91,12 +92,34 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
         }
     }
 
+    private @NotNull Collection<String> getDeepKeyList(@NotNull ConfigurationSection config,
+                                                       @NotNull HashSet<String> result,
+                                                       @NotNull String resolvedKey) {
+        Collection<String> keys = config.getKeys(false);
+        for (String key : keys) {
+            Object object = config.get(key);
+            if (object instanceof net.md_5.bungee.config.Configuration) {
+                ConfigurationSection keySection = config.getSection(key);
+                if (!key.isEmpty()) {
+                    key += ".";
+                }
+                result.addAll(getDeepKeyList(keySection, result, resolvedKey + key));
+            } else {
+                result.add(resolvedKey + key);
+            }
+        }
+        return result;
+    }
+
     @Override
-    @Contract("-> new")
-    public @NotNull Collection<String> getKeys() {
+    public @NotNull Collection<String> getKeys(boolean deep) {
         config.getReadLock().lock();
         try {
-            return section.getKeys();
+            if (!deep) {
+                return section.getKeys();
+            } else {
+                return getDeepKeyList(config, new HashSet<>(), "");
+            }
         } finally {
             config.getReadLock().unlock();
         }

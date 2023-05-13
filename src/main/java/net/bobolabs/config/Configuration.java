@@ -102,8 +102,8 @@ public final class Configuration implements ConfigurationSection {
     }
 
     @Override
-    public @NotNull Collection<String> getKeys() {
-        return section.getKeys();
+    public @NotNull Collection<String> getKeys(boolean deep) {
+        return section.getKeys(deep);
     }
 
     @Override
