@@ -24,53 +24,75 @@ package net.bobolabs.config;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.yaml.snakeyaml.Yaml;
 
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public final class Configuration implements ConfigurationSection {
 
-    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    private final ReentrantReadWriteLock lock;
+    private final ThreadLocal<Yaml> yaml; // TODO SonarLint dice cose
+    private final boolean autoSave;
+    private final File file;
 
-//    private final boolean saveDefaultResource;
-//    private final boolean autoSave;
-//    private final File file;
+    private ConfigurationSectionImpl section;
 
-    private ConfigurationSectionImpl0 section;
+    Configuration(@NotNull ThreadLocal<Yaml> yaml, @NotNull File file, boolean autoSave) {
+        this.lock = new ReentrantReadWriteLock();
+        this.autoSave = autoSave;
+        this.yaml = yaml;
+        this.file = file;
 
-    Configuration(@NotNull ConfigurationSectionImpl0 section) {
-        this.section = section;
+        load();
     }
-//
-//    Configuration(@NotNull File file, @Nullable String defaultResource, boolean saveDefaultResource, boolean autoSave) {
-//        this.saveDefaultResource = saveDefaultResource;
-//        this.autoSave = autoSave;
-//        this.file = file;
-//
-//        if (!file.getParentFile().exists()) {
-//            file.getParentFile().mkdirs();
-//        }
-//
-//        if (!file.exists()) {
-//            if (saveDefaultResource) {
-//                if (defaultResource == null) {
-//                    defaultResource = file.getName();
-//                }
-//                try (InputStream in = getClass().getResourceAsStream("/" + defaultResource)) {
-//                    if (in != null) {
-//                        Files.copy(in, file.toPath());
-//                    }
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//            } else {
-//                // TODO: cabbo vuoi da me?
-//            }
-//        }
-//
-////        load();
-//    }
+
+    private void load() {
+        lock.writeLock().lock();
+        try {
+            try (InputStream in = new FileInputStream(file)) {
+                Map<String, Object> data = yaml.get().load(in);
+                section = new ConfigurationSectionImpl(this, data);
+            } catch (IOException e) {
+                throw new RuntimeException(e); // TODO
+            }
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    public void reload() {
+        load();
+    }
+
+    void autoSave() {
+        if (autoSave) {
+            save();
+        }
+    }
+
+    public void save() {
+        lock.writeLock().lock();
+        try (Writer writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
+            yaml.get().dump(section.getData(), writer);
+        } catch (IOException e) {
+            e.printStackTrace(); // TODO ?
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    @NotNull ReentrantReadWriteLock.ReadLock readLock() {
+        return lock.readLock();
+    }
+
+    @NotNull ReentrantReadWriteLock.WriteLock writeLock() {
+        return lock.writeLock();
+    }
 
     @Override
     public boolean contains(@NotNull String path) {
@@ -88,13 +110,8 @@ public final class Configuration implements ConfigurationSection {
     }
 
     @Override
-    public @NotNull List<@NotNull Object> getList(@NotNull String path) {
+    public @NotNull List<@Nullable Object> getList(@NotNull String path) {
         return section.getList(path);
-    }
-
-    @Override
-    public @NotNull List<@NotNull Object> getList(@NotNull String path, @NotNull List<Object> def) {
-        return section.getList(path, def);
     }
 
     @Override
@@ -222,21 +239,6 @@ public final class Configuration implements ConfigurationSection {
         return section.getBooleanList(path);
     }
 
-//    @Override
-//    public char getChar(@NotNull String path) {
-//        return section.getChar(path);
-//    }
-//
-//    @Override
-//    public char getChar(@NotNull String path, char def) {
-//        return section.getChar(path, def);
-//    }
-//
-//    @Override
-//    public @NotNull List<@NotNull Character> getCharList(@NotNull String path) {
-//        return section.getCharList(path);
-//    }
-
     @Override
     public @Nullable String getString(@NotNull String path) {
         return section.getString(path);
@@ -265,48 +267,6 @@ public final class Configuration implements ConfigurationSection {
     @Override
     public @NotNull <T extends Enum<T>> List<@NotNull T> getEnumList(@NotNull String path, @NotNull Class<T> enumClass) {
         return section.getEnumList(path, enumClass);
-    }
-
-    //
-//    public void save() {
-//        getWriteLock().lock();
-//        try {
-//
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        } finally {
-//            getWriteLock().unlock();
-//        }
-//    }
-//
-//    private void load() {
-//        getWriteLock().lock();
-//        try {
-//            net.md_5.bungee.config.Configuration raw = provider.load(file);
-//            section = new ConfigurationSectionImpl(raw, this);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        } finally {
-//            getWriteLock().unlock();
-//        }
-//    }
-
-//    public void reload() {
-//        load();
-//    }
-//
-//    void autoSave() {
-//        if (autoSave) {
-//            save();
-//        }
-//    }
-
-    ReentrantReadWriteLock.ReadLock getReadLock() {
-        return lock.readLock();
-    }
-
-    ReentrantReadWriteLock.WriteLock getWriteLock() {
-        return lock.writeLock();
     }
 
 }

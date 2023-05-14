@@ -44,9 +44,6 @@ public interface ConfigurationSection {
     @Contract("_ -> new")
     List<@Nullable Object> getList(@NotNull String path);
 
-    @NotNull
-    List<@Nullable Object> getList(@NotNull String path, @NotNull List<Object> def);
-
     void set(@NotNull String path, @Nullable Object value);
 
     @Nullable
@@ -116,14 +113,6 @@ public interface ConfigurationSection {
     @Contract("_ -> new")
     List<@Nullable Boolean> getBooleanList(@NotNull String path);
 
-//    char getChar(@NotNull String path);
-//
-//    char getChar(@NotNull String path, char def);
-//
-//    @NotNull
-//    @Contract("_ -> new")
-//    List<@NotNull Character> getCharList(@NotNull String path);
-
     @Nullable
     String getString(@NotNull String path);
 
@@ -133,10 +122,9 @@ public interface ConfigurationSection {
 
     @NotNull
     @Contract("_ -> new")
-    List<@Nullable String> getStringList(@NotNull String path);
+    List<@NotNull String> getStringList(@NotNull String path);
 
-    @Nullable
-    <T extends Enum<T>> T getEnum(@NotNull String path, @NotNull Class<T> enumClass);
+    @Nullable <T extends Enum<T>> T getEnum(@NotNull String path, @NotNull Class<T> enumClass);
 
     @Nullable
     @Contract("_, _, !null -> !null")
@@ -144,13 +132,7 @@ public interface ConfigurationSection {
 
     @NotNull
     @Contract("_, _ -> new")
-    <T extends Enum<T>> List<@Nullable T> getEnumList(@NotNull String path, @NotNull Class<T> enumClass);
-
-
-//    @NotNull List<?> getList(@NotNull String path);
-//
-//
-//    @NotNull List<?> getList(@NotNull String path, List<?> def);
+    <T extends Enum<T>> List<@NotNull T> getEnumList(@NotNull String path, @NotNull Class<T> enumClass);
 
 
     // TODO <T> T getObject(@NotNull String path, @NotNull Function<ConfigurationSection, T> parser);

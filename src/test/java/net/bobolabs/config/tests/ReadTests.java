@@ -25,42 +25,39 @@ package net.bobolabs.config.tests;
 import net.bobolabs.config.Configuration;
 import net.bobolabs.config.ConfigurationBuilder;
 import net.md_5.bungee.config.YamlConfiguration;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Locale;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class Tests {
+class ReadTests {
 
-    final String dest = "testDataFolder";
+    @TempDir
+    static Path directory;
 
-    net.md_5.bungee.config.Configuration md5;
-    Configuration config;
+    static Configuration config;
+    static net.md_5.bungee.config.Configuration md5;
 
     @BeforeAll
-    void beforeAll() throws IOException {
-        String fileName = "config.yml";
-        String destFilePath = dest + "/" + fileName;
+    static void beforeAll() throws IOException {
+        String file = "config.yml";
+        File configFile = directory.resolve(file).toFile();
 
         config = ConfigurationBuilder
-                .fromFile(destFilePath)
-                .setDefaultResource(fileName)
+                .fromFile(configFile)
+                .setDefaultResource(file)
                 .build();
 
-        md5 = net.md_5.bungee.config.ConfigurationProvider.getProvider(YamlConfiguration.class).load(new File(destFilePath));
-    }
-
-    @AfterAll
-    void afterAll() {
-        // TODO delete whole directory
-        new File(dest + "/config.yml").delete();
+        md5 = net.md_5.bungee.config.ConfigurationProvider
+                .getProvider(YamlConfiguration.class)
+                .load(configFile);
     }
 
     @Test
@@ -87,7 +84,7 @@ class Tests {
 
     @Test
     void getWithDefault() {
-        Object def = Locale.US; // any object
+        Object def = new Object(); // any object
 
         // ours
         assertEquals(config.get("non.existing.key", def), def);
@@ -105,8 +102,8 @@ class Tests {
         // ours
         assertNull(config.getSection("non.existing.key"));
 
-        // behaves like md_5
-        assertNull(md5.getSection("non.existing.key"));
+        // behaves like md_5 -- NO, we do not silently create the section.
+        // assertNull(md5.getSection("non.existing.key"));
     }
 
     // TODO getSection with default
@@ -126,7 +123,11 @@ class Tests {
         assertEquals(md5.getByte("non.existing.key", (byte) -1), config.getByte("non.existing.key", (byte) -1));
     }
 
-    // TODO byte list
+    @Test
+    void getByteList() {
+        // ours
+        assertEquals(List.of((byte) 0, Byte.MIN_VALUE, Byte.MAX_VALUE, (byte) 1000), config.getByteList("lists.bytes"));
+    }
 
     @Test
     void getShort() {
@@ -216,7 +217,12 @@ class Tests {
         assertEquals(md5.getBoolean("non.existing.key", true), config.getBoolean("non.existing.key", true));
     }
 
-    // TODO boolean list
+    @Test
+    void getBooleanList() {
+        assertEquals(List.of(true, false), config.getBooleanList("lists.booleans.1"));
+        assertEquals(List.of(true, false), config.getBooleanList("lists.booleans.2"));
+        assertEquals(Collections.emptyList(), config.getBooleanList("lists.booleans.3"));
+    }
 
     @Test
     void getString() {
@@ -231,7 +237,10 @@ class Tests {
         assertEquals(md5.getString("non.existing.key", "weeeee"), config.getString("non.existing.key", "weeeee"));
     }
 
-    // TODO string list
+    @Test
+    void getStringList() {
+        assertEquals(List.of("1", "c", ""), config.getStringList("values.list1"));
+    }
 
     @Test
     void getEnum() {
@@ -243,6 +252,11 @@ class Tests {
         // md_5 does not support enums
     }
 
-    // TODO enum list
+    @Test
+    void getEnumList() {
+        assertEquals(List.of(TestEnum.TEST1, TestEnum.TEST2), config.getEnumList("lists.enums", TestEnum.class));
+
+        // md_5 does not support enums
+    }
 
 }

@@ -26,11 +26,9 @@ import org.jetbrains.annotations.NotNull;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.util.Map;
 
 public final class ConfigurationBuilder {
 
@@ -101,12 +99,7 @@ public final class ConfigurationBuilder {
             }
         }
 
-        try (InputStream in = new FileInputStream(file)) {
-            Map<String, Object> data = yaml.get().load(in);
-            return new Configuration(new ConfigurationSectionImpl0(data));
-        } catch (IOException e) {
-            throw new RuntimeException(e); // TODO
-        }
+        return new Configuration(yaml, file, autoSave);
     }
 
 }
