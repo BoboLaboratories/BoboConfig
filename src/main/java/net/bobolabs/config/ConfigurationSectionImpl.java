@@ -119,44 +119,12 @@ class ConfigurationSectionImpl implements ConfigurationSection {
         return ret != null ? ret : def;
     }
 
-    private @NotNull Collection<String> getDeepKeyList(@NotNull ConfigurationSection config,
-                                                       @NotNull Keys keys,
-                                                       @NotNull HashSet<String> result,
-                                                       @NotNull String resolvedKey) {
-
-        /*
-        *
-        * ""
-        * 1
-        *
-        *
-        * */
-
-        Collection<String> dataKeys = config.getKeys(Keys.ROOT);
-        for (String key : dataKeys) {
-            Object object = config.get(key);
-            if (object instanceof ConfigurationSectionImpl section) {
-                if (keys == Keys.BRANCHES) {
-
-                }
-
-                if (!key.isEmpty()) {
-                    key += ".";
-                }
-                result.addAll(getDeepKeyList(section, keys, result, resolvedKey + key));
-            } else {
-                result.add(resolvedKey + key);
-            }
-        }
-        return result;
-    }
-
     @Override
-    public @NotNull Collection<@NotNull String> getKeys(@NotNull Keys key) {
-        if (key == Keys.ROOT) {
+    public @NotNull Collection<@NotNull String> getKeys(@NotNull KeyResolver keyResolver) {
+        if (keyResolver == KeyResolver.ROOT) {
             return data.keySet();
         } else {
-            return getDeepKeyList(this, key, new HashSet<>(), "");
+            return getDeepKeyList(this, keyResolver, new HashSet<>(), null);
         }
     }
 
@@ -349,6 +317,24 @@ class ConfigurationSectionImpl implements ConfigurationSection {
     private @NotNull String getSubPath(@NotNull String path) {
         int index = path.indexOf(SEPARATOR);
         return (index == -1) ? path : path.substring(index + 1);
+    }
+
+    private @NotNull Set<String> getDeepKeyList(@NotNull ConfigurationSectionImpl config,
+                                                @NotNull KeyResolver keyResolver,
+                                                @NotNull Set<String> result,
+                                                @Nullable String fullKey) {
+        for (String key : config.getData().keySet()) {
+            String newFullKey = fullKey == null ? key : fullKey + "." + key;
+            if (config.get(key) instanceof ConfigurationSectionImpl section) {
+                if (keyResolver == KeyResolver.BRANCHES) {
+                    result.add(newFullKey);
+                }
+                result.addAll(getDeepKeyList(section, keyResolver, result, newFullKey));
+            } else {
+                result.add(newFullKey);
+            }
+        }
+        return result;
     }
 
 }

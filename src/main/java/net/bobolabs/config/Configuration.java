@@ -130,8 +130,8 @@ public final class Configuration implements ConfigurationSection {
     }
 
     @Override
-    public @NotNull Collection<@NotNull String> getKeys(@NotNull Keys key) {
-        return section.getKeys(key);
+    public @NotNull Collection<@NotNull String> getKeys(@NotNull KeyResolver keyResolver) {
+        return section.getKeys(keyResolver);
     }
 
     @Override

@@ -55,7 +55,7 @@ public interface ConfigurationSection {
 
     @NotNull
     @Contract("_ -> new")
-    Collection<@NotNull String> getKeys(@NotNull Keys key);
+    Collection<@NotNull String> getKeys(@NotNull KeyResolver keyResolver);
 
     byte getByte(@NotNull String path);
 
