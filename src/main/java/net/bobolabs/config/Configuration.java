@@ -130,8 +130,8 @@ public final class Configuration implements ConfigurationSection {
     }
 
     @Override
-    public @NotNull Collection<@NotNull String> getKeys(boolean deep) {
-        return section.getKeys(deep);
+    public @NotNull Collection<@NotNull String> getKeys(@NotNull Keys key) {
+        return section.getKeys(key);
     }
 
     @Override

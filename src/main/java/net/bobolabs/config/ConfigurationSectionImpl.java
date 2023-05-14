@@ -119,9 +119,45 @@ class ConfigurationSectionImpl implements ConfigurationSection {
         return ret != null ? ret : def;
     }
 
+    private @NotNull Collection<String> getDeepKeyList(@NotNull ConfigurationSection config,
+                                                       @NotNull Keys keys,
+                                                       @NotNull HashSet<String> result,
+                                                       @NotNull String resolvedKey) {
+
+        /*
+        *
+        * ""
+        * 1
+        *
+        *
+        * */
+
+        Collection<String> dataKeys = config.getKeys(Keys.ROOT);
+        for (String key : dataKeys) {
+            Object object = config.get(key);
+            if (object instanceof ConfigurationSectionImpl section) {
+                if (keys == Keys.BRANCHES) {
+
+                }
+
+                if (!key.isEmpty()) {
+                    key += ".";
+                }
+                result.addAll(getDeepKeyList(section, keys, result, resolvedKey + key));
+            } else {
+                result.add(resolvedKey + key);
+            }
+        }
+        return result;
+    }
+
     @Override
-    public @NotNull Collection<@NotNull String> getKeys(boolean deep) {
-        return null;
+    public @NotNull Collection<@NotNull String> getKeys(@NotNull Keys key) {
+        if (key == Keys.ROOT) {
+            return data.keySet();
+        } else {
+            return getDeepKeyList(this, key, new HashSet<>(), "");
+        }
     }
 
     @Override

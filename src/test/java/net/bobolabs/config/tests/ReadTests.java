@@ -24,6 +24,7 @@ package net.bobolabs.config.tests;
 
 import net.bobolabs.config.Configuration;
 import net.bobolabs.config.ConfigurationBuilder;
+import net.bobolabs.config.Keys;
 import net.md_5.bungee.config.YamlConfiguration;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -108,7 +109,23 @@ class ReadTests {
 
     // TODO getSection with default
 
-    // TODO getKeys
+    @Test
+    void geKeys() {
+        System.out.println("ROOT:");
+        for (String key : config.getKeys(Keys.ROOT)) {
+            System.out.println(key);
+        }
+        System.out.println();
+        System.out.println("Leaves:");
+        for (String key : config.getKeys(Keys.LEAVES)) {
+            System.out.println(key);
+        }
+        System.out.println();
+        System.out.println("Branches:");
+        for (String key : config.getKeys(Keys.BRANCHES)) {
+            System.out.println(key);
+        }
+    }
 
     @Test
     void getByte() {
