@@ -1,0 +1,14 @@
+values:
+  byte: 1
+  short: 2
+  int: 3
+  long: 4
+  float: 5.1
+  double: 6.2
+  boolean: true
+  string: 'sette :D'
+  enum: TEST1
+  list:
+    - A
+    -
+    - 3

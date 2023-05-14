@@ -26,287 +26,294 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-public final class Configuration implements ConfigurationSection {
+// TODO locks
+public class ConfigurationSectionImpl0 implements ConfigurationSection {
 
-    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    private static final char SEPARATOR = '.';
 
-//    private final boolean saveDefaultResource;
-//    private final boolean autoSave;
-//    private final File file;
+    private final ReentrantReadWriteLock lock;
+    private final Map<String, Object> data;
 
-    private ConfigurationSectionImpl0 section;
-
-    Configuration(@NotNull ConfigurationSectionImpl0 section) {
-        this.section = section;
+    ConfigurationSectionImpl0(@NotNull Map<?, ?> data) {
+        this(data, new ReentrantReadWriteLock());
     }
-//
-//    Configuration(@NotNull File file, @Nullable String defaultResource, boolean saveDefaultResource, boolean autoSave) {
-//        this.saveDefaultResource = saveDefaultResource;
-//        this.autoSave = autoSave;
-//        this.file = file;
-//
-//        if (!file.getParentFile().exists()) {
-//            file.getParentFile().mkdirs();
-//        }
-//
-//        if (!file.exists()) {
-//            if (saveDefaultResource) {
-//                if (defaultResource == null) {
-//                    defaultResource = file.getName();
-//                }
-//                try (InputStream in = getClass().getResourceAsStream("/" + defaultResource)) {
-//                    if (in != null) {
-//                        Files.copy(in, file.toPath());
-//                    }
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//            } else {
-//                // TODO: cabbo vuoi da me?
-//            }
-//        }
-//
-////        load();
-//    }
+
+    ConfigurationSectionImpl0(@NotNull Map<?, ?> ext, @NotNull ReentrantReadWriteLock lock) {
+        this.data = new LinkedHashMap<>();
+        this.lock = lock;
+
+        for (Map.Entry<?, ?> entry : ext.entrySet()) {
+            String key = entry.getKey().toString();
+            if (entry.getValue() instanceof Map<?, ?> section) {
+                data.put(key, new ConfigurationSectionImpl0(section, lock));
+            } else {
+                data.put(key, entry.getValue());
+            }
+        }
+    }
 
     @Override
     public boolean contains(@NotNull String path) {
-        return section.contains(path);
+        return get(path) != null;
     }
 
     @Override
     public @Nullable Object get(@NotNull String path) {
-        return section.get(path);
+        return get(path, null);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> @Nullable T get(@NotNull String path, @Nullable T def) {
-        return section.get(path, def);
+        lock.readLock().lock();
+        try {
+            Object ret = null;
+            ConfigurationSection section = getSectionFor(path);
+            if (section == this) {
+                ret = data.get(path);
+            } else if (section != null) {
+                String subPath = getSubPath(path);
+                ret = section.get(subPath, def);
+            }
+            return ret == null ? def : (T) ret;
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
     @Override
     public @NotNull List<@NotNull Object> getList(@NotNull String path) {
-        return section.getList(path);
+        return null; // TODO
     }
 
     @Override
     public @NotNull List<@NotNull Object> getList(@NotNull String path, @NotNull List<Object> def) {
-        return section.getList(path, def);
+        return null; // TODO
     }
 
     @Override
     public void set(@NotNull String path, @Nullable Object value) {
-        section.set(path, value);
+        if (value instanceof Map<?, ?> map) {
+            value = new ConfigurationSectionImpl0(map, lock);
+        }
+
+        ConfigurationSection section = getSectionFor(path);
+        if (section == this) {
+            if (value == null) {
+                data.remove(path);
+            } else {
+                data.put(path, value);
+            }
+        } else {
+            section.get(getSubPath(path), value); // TODO
+        }
     }
 
     @Override
     public @Nullable ConfigurationSection getSection(@NotNull String path) {
-        return section.getSection(path);
+        return getSection(path, null);
     }
 
     @Override
     public @Nullable ConfigurationSection getSection(@NotNull String path, @Nullable ConfigurationSection def) {
-        return section.getSection(path, def);
+        ConfigurationSection ret = getSectionFor(path);
+        return ret != null ? ret : def;
     }
 
     @Override
     public @NotNull Collection<@NotNull String> getKeys(boolean deep) {
-        return section.getKeys(deep);
+        return null;
     }
 
     @Override
     public byte getByte(@NotNull String path) {
-        return section.getByte(path);
+        return getByte(path, (byte) 0);
     }
 
     @Override
     public byte getByte(@NotNull String path, byte def) {
-        return section.getByte(path, def);
+        Object ret = get(path);
+        return (ret instanceof Number n) ? n.byteValue() : def;
     }
 
     @Override
     public @NotNull List<@NotNull Byte> getByteList(@NotNull String path) {
-        return section.getByteList(path);
+        return null; // TODO
     }
 
     @Override
     public short getShort(@NotNull String path) {
-        return section.getShort(path);
+        return getShort(path, (short) 0);
     }
 
     @Override
     public short getShort(@NotNull String path, short def) {
-        return section.getShort(path, def);
+        Object ret = get(path);
+        return (ret instanceof Number n) ? n.shortValue() : def;
     }
 
     @Override
     public @NotNull List<@NotNull Short> getShortList(@NotNull String path) {
-        return section.getShortList(path);
+        return null; // TODO
     }
 
     @Override
     public int getInt(@NotNull String path) {
-        return section.getInt(path);
+        return getInt(path, 0);
     }
 
     @Override
     public int getInt(@NotNull String path, int def) {
-        return section.getInt(path, def);
+        Object ret = get(path);
+        return (ret instanceof Number n) ? n.intValue() : def;
     }
 
     @Override
     public @NotNull List<@NotNull Integer> getIntList(@NotNull String path) {
-        return section.getIntList(path);
+        return null; // TODO
     }
 
     @Override
     public long getLong(@NotNull String path) {
-        return section.getLong(path);
+        return getLong(path, 0);
     }
 
     @Override
     public long getLong(@NotNull String path, long def) {
-        return section.getLong(path, def);
+        Object ret = get(path);
+        return (ret instanceof Number n) ? n.longValue() : def;
     }
 
     @Override
     public @NotNull List<@NotNull Long> getLongList(@NotNull String path) {
-        return section.getLongList(path);
+        return null; // TODO
     }
 
     @Override
     public float getFloat(@NotNull String path) {
-        return section.getFloat(path);
+        return getFloat(path, 0);
     }
 
     @Override
     public float getFloat(@NotNull String path, float def) {
-        return section.getFloat(path, def);
+        Object ret = get(path);
+        return (ret instanceof Number n) ? n.floatValue() : def;
     }
 
     @Override
     public @NotNull List<@NotNull Float> getFloatList(@NotNull String path) {
-        return section.getFloatList(path);
+        return null; // TODO
     }
 
     @Override
     public double getDouble(@NotNull String path) {
-        return section.getDouble(path);
+        return getDouble(path, 0);
     }
 
     @Override
     public double getDouble(@NotNull String path, double def) {
-        return section.getDouble(path, def);
+        Object ret = get(path);
+        return (ret instanceof Number n) ? n.doubleValue() : def;
     }
 
     @Override
     public @NotNull List<@NotNull Double> getDoubleList(@NotNull String path) {
-        return section.getDoubleList(path);
+        return null; // TODO
     }
 
     @Override
     public boolean getBoolean(@NotNull String path) {
-        return section.getBoolean(path);
+        return getBoolean(path, false);
     }
 
     @Override
     public boolean getBoolean(@NotNull String path, boolean def) {
-        return section.getBoolean(path, def);
+        Object ret = get(path);
+        return (ret instanceof Boolean bool) ? bool : def;
     }
 
     @Override
     public @NotNull List<@NotNull Boolean> getBooleanList(@NotNull String path) {
-        return section.getBooleanList(path);
+        return null;
     }
 
 //    @Override
 //    public char getChar(@NotNull String path) {
-//        return section.getChar(path);
+//        return getChar(path, '\u0000');
 //    }
-//
+
 //    @Override
 //    public char getChar(@NotNull String path, char def) {
-//        return section.getChar(path, def);
+//        Object ret = get(path);
+//        System.out.println(ret.getClass());
+//        return (ret instanceof Character ch) ? ch : def;
 //    }
 //
 //    @Override
 //    public @NotNull List<@NotNull Character> getCharList(@NotNull String path) {
-//        return section.getCharList(path);
+//        return null; // TODO
 //    }
 
     @Override
     public @Nullable String getString(@NotNull String path) {
-        return section.getString(path);
+        return getString(path, null);
     }
 
     @Override
     public @Nullable String getString(@NotNull String path, @Nullable String def) {
-        return section.getString(path, def);
+        Object ret = get(path);
+        return (ret instanceof String str) ? str : def;
     }
 
     @Override
     public @NotNull List<@NotNull String> getStringList(@NotNull String path) {
-        return section.getStringList(path);
+        return null; // TODO
     }
 
     @Override
     public <T extends Enum<T>> @Nullable T getEnum(@NotNull String path, @NotNull Class<T> enumClass) {
-        return section.getEnum(path, enumClass);
+        return getEnum(path, enumClass, null);
     }
 
     @Override
     public <T extends Enum<T>> @Nullable T getEnum(@NotNull String path, @NotNull Class<T> enumClass, @Nullable T def) {
-        return section.getEnum(path, enumClass, def);
+        String str = getString(path);
+        return (str != null) ?  Enum.valueOf(enumClass, str) : def;
     }
 
     @Override
     public @NotNull <T extends Enum<T>> List<@NotNull T> getEnumList(@NotNull String path, @NotNull Class<T> enumClass) {
-        return section.getEnumList(path, enumClass);
+        return null; // TODO
     }
 
-    //
-//    public void save() {
-//        getWriteLock().lock();
-//        try {
-//
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        } finally {
-//            getWriteLock().unlock();
-//        }
-//    }
-//
-//    private void load() {
-//        getWriteLock().lock();
-//        try {
-//            net.md_5.bungee.config.Configuration raw = provider.load(file);
-//            section = new ConfigurationSectionImpl(raw, this);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        } finally {
-//            getWriteLock().unlock();
-//        }
-//    }
 
-//    public void reload() {
-//        load();
-//    }
-//
-//    void autoSave() {
-//        if (autoSave) {
-//            save();
-//        }
-//    }
+    // ============================================
+    //                   INTERNAL
+    // ============================================
 
-    ReentrantReadWriteLock.ReadLock getReadLock() {
-        return lock.readLock();
+    private @Nullable ConfigurationSection getSectionFor(@NotNull String path) {
+        lock.readLock().lock();
+        try {
+            int index = path.indexOf(SEPARATOR);
+            if (index == -1) {
+                return this;
+            } else {
+                String rootPath = path.substring(0, index);
+                return (ConfigurationSection) data.get(rootPath);
+            }
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
-    ReentrantReadWriteLock.WriteLock getWriteLock() {
-        return lock.writeLock();
+    private @NotNull String getSubPath(@NotNull String path) {
+        int index = path.indexOf(SEPARATOR);
+        return (index == -1) ? path : path.substring(index + 1);
     }
 
 }

@@ -1,32 +1,40 @@
 /*
- * This file is part of BoboLabs - BoboConfig.
+ * This file is part of BoboConfig.
  *
  * Copyright (C) 2023 BoboLabs.net
  * Copyright (C) 2023 Mattia Mignogna (https://stami.bobolabs.net)
  * Copyright (C) 2023 Fabio Nebbia (https://glowy.bobolabs.net)
  * Copyright (C) 2023 Third party contributors
  *
- * BoboLabs - BoboConfig is free software: you can redistribute it and/or modify
+ * BoboConfig is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * BoboLabs - BoboConfig is distributed in the hope that it will be useful,
+ * BoboConfig is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with BoboLabs - BoboConfig.  If not, see <http://www.gnu.org/licenses/>.
+ * along with BoboConfig.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 package net.bobolabs.config;
 
 import org.jetbrains.annotations.NotNull;
+import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.util.Map;
 
 public final class ConfigurationBuilder {
+
+    private static final ThreadLocal<Yaml> yaml = ThreadLocal.withInitial(Yaml::new);
 
     private final File file;
 
@@ -39,7 +47,15 @@ public final class ConfigurationBuilder {
     }
 
     public static @NotNull ConfigurationBuilder fromFile(@NotNull File file) {
+        // Do not accept directories
+        if (file.isDirectory()) {
+            throw new IllegalArgumentException(file + " is a directory");
+        }
         return new ConfigurationBuilder(file);
+    }
+
+    public static @NotNull ConfigurationBuilder fromFile(@NotNull String file) {
+        return fromFile(new File(file));
     }
 
     public static @NotNull ConfigurationBuilder fromFile(@NotNull File folder, @NotNull String file) {
@@ -58,15 +74,39 @@ public final class ConfigurationBuilder {
     }
 
     public @NotNull Configuration build() {
-        if (file.isDirectory()) {
-            throw new IllegalArgumentException(file + " is a directory");
+        if (!file.exists()) {
+            // Fail if file doesn't exist and save default was not requested
+            if (!saveDefaultResource) {
+                throw new IllegalStateException("file should not be saved from resource but does not exist");
+            }
+
+            // Create folder structure
+            File parent = file.getParentFile();
+            if (parent != null && !parent.exists()) {
+                parent.mkdirs(); // TODO do not ignore return value
+            }
+
+            // TODO uhm
+            if (defaultResource == null) {
+                defaultResource = file.getName();
+            }
+
+            // Copy file from resources
+            try (InputStream in = getClass().getResourceAsStream("/" + defaultResource)) {
+                if (in != null) {
+                    Files.copy(in, file.toPath());
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
-        if (!saveDefaultResource && !file.exists()) {
-            throw new IllegalStateException("File does not exist");
+        try (InputStream in = new FileInputStream(file)) {
+            Map<String, Object> data = yaml.get().load(in);
+            return new Configuration(new ConfigurationSectionImpl0(data));
+        } catch (IOException e) {
+            throw new RuntimeException(e); // TODO
         }
-
-        return new Configuration(file, defaultResource, saveDefaultResource, autoSave);
     }
 
 }

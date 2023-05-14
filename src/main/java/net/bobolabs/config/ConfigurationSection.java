@@ -1,28 +1,27 @@
 /*
- * This file is part of BoboLabs - BoboConfig.
+ * This file is part of BoboConfig.
  *
  * Copyright (C) 2023 BoboLabs.net
  * Copyright (C) 2023 Mattia Mignogna (https://stami.bobolabs.net)
  * Copyright (C) 2023 Fabio Nebbia (https://glowy.bobolabs.net)
  * Copyright (C) 2023 Third party contributors
  *
- * BoboLabs - BoboConfig is free software: you can redistribute it and/or modify
+ * BoboConfig is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * BoboLabs - BoboConfig is distributed in the hope that it will be useful,
+ * BoboConfig is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with BoboLabs - BoboConfig.  If not, see <http://www.gnu.org/licenses/>.
+ * along with BoboConfig.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 package net.bobolabs.config;
 
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,108 +33,125 @@ public interface ConfigurationSection {
 
     boolean contains(@NotNull String path);
 
+    @Nullable
     Object get(@NotNull String path);
 
-    <T> T get(@NotNull String path, T def);
+    @Nullable
+    @Contract("_, !null -> !null")
+    <T> T get(@NotNull String path, @Nullable T def);
+
+    @NotNull
+    @Contract("_ -> new")
+    List<@Nullable Object> getList(@NotNull String path);
+
+    @NotNull
+    List<@Nullable Object> getList(@NotNull String path, @NotNull List<Object> def);
 
     void set(@NotNull String path, @Nullable Object value);
 
+    @Nullable
     ConfigurationSection getSection(@NotNull String path);
 
-    /**
-     * @deprecated use {@link #getKeys(boolean)} instead.
-     */
-    @Contract("-> new")
-    @Deprecated(forRemoval = true, since = "1.1.0")
-    @ApiStatus.ScheduledForRemoval(inVersion = "2.0.0")
-    default @NotNull Collection<String> getKeys() {
-        return getKeys(false);
-    }
+    @Nullable
+    @Contract("_, !null -> !null")
+    ConfigurationSection getSection(@NotNull String path, @Nullable ConfigurationSection def);
 
-    @Contract("-> new")
-    @NotNull Collection<String> getKeys(boolean deep);
+    @NotNull
+    @Contract("_ -> new")
+    Collection<@NotNull String> getKeys(boolean deep);
 
     byte getByte(@NotNull String path);
 
     byte getByte(@NotNull String path, byte def);
 
-
+    @NotNull
     @Contract("_ -> new")
-    @NotNull List<Byte> getByteList(@NotNull String path);
+    List<@Nullable Byte> getByteList(@NotNull String path);
 
     short getShort(@NotNull String path);
 
     short getShort(@NotNull String path, short def);
 
-
+    @NotNull
     @Contract("_ -> new")
-    @NotNull List<Short> getShortList(@NotNull String path);
+    List<@Nullable Short> getShortList(@NotNull String path);
 
     int getInt(@NotNull String path);
 
     int getInt(@NotNull String path, int def);
 
-
+    @NotNull
     @Contract("_ -> new")
-    @NotNull List<Integer> getIntList(@NotNull String path);
+    List<@Nullable Integer> getIntList(@NotNull String path);
 
     long getLong(@NotNull String path);
 
     long getLong(@NotNull String path, long def);
 
-
+    @NotNull
     @Contract("_ -> new")
-    @NotNull List<Long> getLongList(@NotNull String path);
+    List<@Nullable Long> getLongList(@NotNull String path);
 
     float getFloat(@NotNull String path);
 
     float getFloat(@NotNull String path, float def);
 
-
+    @NotNull
     @Contract("_ -> new")
-    @NotNull List<Float> getFloatList(@NotNull String path);
+    List<@Nullable Float> getFloatList(@NotNull String path);
 
     double getDouble(@NotNull String path);
 
     double getDouble(@NotNull String path, double def);
 
-
+    @NotNull
     @Contract("_ -> new")
-    @NotNull List<Double> getDoubleList(@NotNull String path);
+    List<@Nullable Double> getDoubleList(@NotNull String path);
 
     boolean getBoolean(@NotNull String path);
 
     boolean getBoolean(@NotNull String path, boolean def);
 
-
+    @NotNull
     @Contract("_ -> new")
-    @NotNull List<Boolean> getBooleanList(@NotNull String path);
+    List<@Nullable Boolean> getBooleanList(@NotNull String path);
 
-    char getChar(@NotNull String path);
+//    char getChar(@NotNull String path);
+//
+//    char getChar(@NotNull String path, char def);
+//
+//    @NotNull
+//    @Contract("_ -> new")
+//    List<@NotNull Character> getCharList(@NotNull String path);
 
-    char getChar(@NotNull String path, char def);
-
-
-    @Contract("_ -> new")
-    @NotNull List<Character> getCharList(@NotNull String path);
-
+    @Nullable
     String getString(@NotNull String path);
 
-    String getString(@NotNull String path, String def);
+    @Nullable
+    @Contract("_, !null -> !null")
+    String getString(@NotNull String path, @Nullable String def);
 
-
+    @NotNull
     @Contract("_ -> new")
-    @NotNull List<String> getStringList(@NotNull String path);
+    List<@Nullable String> getStringList(@NotNull String path);
 
-    @NotNull List<?> getList(@NotNull String path);
-
-
-    @NotNull List<?> getList(@NotNull String path, List<?> def);
-
-
-    // Extra utils not included in the native md_5 (bungee) configuration library
-
+    @Nullable
     <T extends Enum<T>> T getEnum(@NotNull String path, @NotNull Class<T> enumClass);
+
+    @Nullable
+    @Contract("_, _, !null -> !null")
+    <T extends Enum<T>> T getEnum(@NotNull String path, @NotNull Class<T> enumClass, @Nullable T def);
+
+    @NotNull
+    @Contract("_, _ -> new")
+    <T extends Enum<T>> List<@Nullable T> getEnumList(@NotNull String path, @NotNull Class<T> enumClass);
+
+
+//    @NotNull List<?> getList(@NotNull String path);
+//
+//
+//    @NotNull List<?> getList(@NotNull String path, List<?> def);
+
 
     // TODO <T> T getObject(@NotNull String path, @NotNull Function<ConfigurationSection, T> parser);
 

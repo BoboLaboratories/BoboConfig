@@ -1,118 +1,140 @@
 /*
- * This file is part of BoboLabs - BoboConfig.
+ * This file is part of BoboConfig.
  *
  * Copyright (C) 2023 BoboLabs.net
  * Copyright (C) 2023 Mattia Mignogna (https://stami.bobolabs.net)
  * Copyright (C) 2023 Fabio Nebbia (https://glowy.bobolabs.net)
  * Copyright (C) 2023 Third party contributors
  *
- * BoboLabs - BoboConfig is free software: you can redistribute it and/or modify
+ * BoboConfig is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * BoboLabs - BoboConfig is distributed in the hope that it will be useful,
+ * BoboConfig is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with BoboLabs - BoboConfig.  If not, see <http://www.gnu.org/licenses/>.
+ * along with BoboConfig.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 package net.bobolabs.config;
 
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+final class ConfigurationSectionImpl { /* implements ConfigurationSection {
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+    private static final char SEPARATOR = '.';
 
-final class ConfigurationSectionImpl implements ConfigurationSection {
+    private final ReentrantReadWriteLock lock;
+    private final Map<String, Object> data;
 
-    private final net.md_5.bungee.config.Configuration section;
-    private final Configuration config;
+    ConfigurationSectionImpl(@NotNull Map<?, ?> data) {
+        this(data, new ReentrantReadWriteLock());
+    }
 
-    ConfigurationSectionImpl(@NotNull net.md_5.bungee.config.Configuration section, @NotNull Configuration config) {
-        this.section = section;
-        this.config = config;
+    ConfigurationSectionImpl(@NotNull Map<?, ?> ext, @NotNull ReentrantReadWriteLock lock) {
+        this.data = new LinkedHashMap<>();
+        this.lock = lock;
+
+        for (Map.Entry<?, ?> entry : ext.entrySet()) {
+            String key = entry.getKey().toString();
+            if (entry.getValue() instanceof Map<?, ?> section) {
+                data.put(key, new ConfigurationSectionImpl(section, lock));
+            } else {
+                data.put(key, entry.getValue());
+            }
+        }
+    }
+
+    private @NotNull String getSubPath(@NotNull String path) {
+        int index = path.indexOf(SEPARATOR);
+        return (index == -1) ? path : path.substring(index + 1);
     }
 
     @Override
     public boolean contains(@NotNull String path) {
-        config.getReadLock().lock();
-        try {
-            return section.contains(path);
-        } finally {
-            config.getReadLock().unlock();
-        }
+        return get(path) != null;
     }
 
     @Override
-    public Object get(@NotNull String path) {
-        config.getReadLock().lock();
+    @SuppressWarnings("unchecked")
+    public <T> T get(@NotNull String path, @Nullable T def) {
+        lock.readLock().lock();
         try {
-            return section.get(path);
+            Object ret = null;
+            ConfigurationSection section = getSectionFor(path);
+            if (section == this) {
+                ret = data.get(path);
+            } else if (section != null) {
+                String subPath = getSubPath(path);
+                ret = section.get(subPath, def);
+            }
+            return ret == null ? def : (T) ret;
         } finally {
-            config.getReadLock().unlock();
-        }
-    }
-
-    @Override
-    public <T> T get(@NotNull String path, T def) {
-        config.getReadLock().lock();
-        try {
-            return section.get(path, def);
-        } finally {
-            config.getReadLock().unlock();
+            lock.readLock().unlock();
         }
     }
 
     @Override
     public void set(@NotNull String path, @Nullable Object value) {
-        config.getWriteLock().lock();
-        try {
-            section.set(path, value);
-            config.autoSave();
-        } finally {
-            config.getWriteLock().unlock();
-        }
+//        if (value instanceof Map<?, ?> map) {
+//            value = new ConfigurationSectionImpl(map, lock);
+//        }
+//
+//        ConfigurationSection section = getSectionFor(path);
+//        if (section == this) {
+//            if (value == null) {
+//                data.remove(path);
+//            } else {
+//                data.put(path, value);
+//            }
+//        } else {
+//            section.get(getSubPath(path), value);
+//        }
     }
 
     @Override
-    public ConfigurationSection getSection(@NotNull String path) {
-        config.getReadLock().lock();
-        try {
-            net.md_5.bungee.config.Configuration newSection = section.getSection(path);
-            return new ConfigurationSectionImpl(newSection, config);
-        } finally {
-            config.getReadLock().unlock();
-        }
+    public @Nullable ConfigurationSection getSection(@NotNull String path) {
+        return getSectionFor(path);
     }
 
-    private @NotNull Collection<String> getDeepKeyList(@NotNull ConfigurationSection config,
-                                                       @NotNull HashSet<String> result,
-                                                       @NotNull String resolvedKey) {
-        Collection<String> keys = config.getKeys(false);
-        for (String key : keys) {
-            Object object = config.get(key);
-            if (object instanceof net.md_5.bungee.config.Configuration) {
-                ConfigurationSection keySection = config.getSection(key);
-                if (!key.isEmpty()) {
-                    key += ".";
-                }
-                result.addAll(getDeepKeyList(keySection, result, resolvedKey + key));
+    private @Nullable ConfigurationSection getSectionFor(@NotNull String path) {
+        lock.readLock().lock();
+        try {
+            int index = path.indexOf(SEPARATOR);
+            if (index == -1) {
+                return this;
             } else {
-                result.add(resolvedKey + key);
+                String rootPath = path.substring(0, index);
+                return (ConfigurationSection) data.get(rootPath);
             }
+        } finally {
+            lock.readLock().unlock();
         }
-        return result;
     }
 
+//    private @NotNull Collection<String> getDeepKeyList(@NotNull ConfigurationSection config,
+//                                                       @NotNull HashSet<String> result,
+//                                                       @NotNull String resolvedKey) {
+//        Collection<String> keys = config.getKeys(false);
+//        for (String key : keys) {
+//            Object object = config.get(key);
+//            if (object instanceof net.md_5.bungee.config.Configuration) {
+//                ConfigurationSection keySection = config.getSection(key);
+//                if (!key.isEmpty()) {
+//                    key += ".";
+//                }
+//                result.addAll(getDeepKeyList(keySection, result, resolvedKey + key));
+//            } else {
+//                result.add(resolvedKey + key);
+//            }
+//        }
+//        return result;
+//    }
+
     @Override
-    public @NotNull Collection<String> getKeys(boolean deep) {
+    public @NotNull Collection<@NotNull String> getKeys(boolean deep) {
         config.getReadLock().lock();
         try {
             if (!deep) {
@@ -433,5 +455,5 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
     net.md_5.bungee.config.Configuration getRaw() {
         return section;
     }
-
+*/
 }
