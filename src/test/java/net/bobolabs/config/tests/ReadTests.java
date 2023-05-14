@@ -24,7 +24,6 @@ package net.bobolabs.config.tests;
 
 import net.bobolabs.config.Configuration;
 import net.bobolabs.config.ConfigurationBuilder;
-import net.bobolabs.config.KeyResolver;
 import net.md_5.bungee.config.YamlConfiguration;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -104,13 +103,13 @@ class ReadTests {
         assertNull(config.getSection("non.existing.key"));
 
         // behaves like md_5 -- NO, we do not silently create the section.
-        // assertNull(md5.getSection("non.existing.key"));
     }
 
     // TODO getSection with default
 
     //       !! DO NOT REMOVE !!
     // getKeys(...) has its own test file
+    //       !! DO NOT REMOVE !!
 
     @Test
     void getByte() {
@@ -233,9 +232,10 @@ class ReadTests {
         assertNull(config.getString("non.existing.key"));
         assertEquals("weeeee", config.getString("non.existing.key", "weeeee"));
 
-        // behaves like md_5, (*) except we return null instead of "" when the key does not exist and no default is provided
-        assertEquals(md5.getString("values.string"), config.getString("values.string"));
+        // behaves like md_5
+        // (*) except we return null instead of "" when the key does not exist and no default value is provided
         // (*) assertEquals(md5.getString("non.existing.key"), config.getString("non.existing.key"));
+        assertEquals(md5.getString("values.string"), config.getString("values.string"));
         assertEquals(md5.getString("non.existing.key", "weeeee"), config.getString("non.existing.key", "weeeee"));
     }
 

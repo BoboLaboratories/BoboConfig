@@ -120,12 +120,8 @@ class ConfigurationSectionImpl implements ConfigurationSection {
     }
 
     @Override
-    public @NotNull Collection<@NotNull String> getKeys(@NotNull KeyResolver keyResolver) {
-        if (keyResolver == KeyResolver.ROOT) {
-            return data.keySet();
-        } else {
-            return getDeepKeyList(this, keyResolver, new HashSet<>(), null);
-        }
+    public @NotNull Set<@NotNull String> getKeys(@NotNull KeyResolver keyResolver) {
+        return getKeys(this, keyResolver, new HashSet<>(), null);
     }
 
     @Override
@@ -319,22 +315,26 @@ class ConfigurationSectionImpl implements ConfigurationSection {
         return (index == -1) ? path : path.substring(index + 1);
     }
 
-    private @NotNull Set<String> getDeepKeyList(@NotNull ConfigurationSectionImpl config,
-                                                @NotNull KeyResolver keyResolver,
-                                                @NotNull Set<String> result,
-                                                @Nullable String fullKey) {
-        for (String key : config.getData().keySet()) {
-            String newFullKey = fullKey == null ? key : fullKey + "." + key;
-            if (config.get(key) instanceof ConfigurationSectionImpl section) {
-                if (keyResolver == KeyResolver.BRANCHES) {
-                    result.add(newFullKey);
+    private @NotNull Set<@NotNull String> getKeys(@NotNull ConfigurationSectionImpl config,
+                                                  @NotNull KeyResolver keyResolver,
+                                                  @NotNull Set<@NotNull String> accumulator,
+                                                  @Nullable String fullKey) {
+        if (keyResolver == KeyResolver.ROOT) {
+            accumulator.addAll(getData().keySet());
+        } else {
+            for (String key : config.getData().keySet()) {
+                String newFullKey = fullKey == null ? key : fullKey + "." + key;
+                if (config.get(key) instanceof ConfigurationSectionImpl section) {
+                    if (keyResolver == KeyResolver.BRANCHES) {
+                        accumulator.add(newFullKey);
+                    }
+                    accumulator.addAll(getKeys(section, keyResolver, accumulator, newFullKey));
+                } else {
+                    accumulator.add(newFullKey);
                 }
-                result.addAll(getDeepKeyList(section, keyResolver, result, newFullKey));
-            } else {
-                result.add(newFullKey);
             }
         }
-        return result;
+        return accumulator;
     }
 
 }

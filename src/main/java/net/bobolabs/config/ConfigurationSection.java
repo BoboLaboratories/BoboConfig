@@ -26,8 +26,8 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public interface ConfigurationSection {
 
@@ -55,7 +55,7 @@ public interface ConfigurationSection {
 
     @NotNull
     @Contract("_ -> new")
-    Collection<@NotNull String> getKeys(@NotNull KeyResolver keyResolver);
+    Set<@NotNull String> getKeys(@NotNull KeyResolver keyResolver);
 
     byte getByte(@NotNull String path);
 

@@ -28,9 +28,9 @@ import org.yaml.snakeyaml.Yaml;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public final class Configuration implements ConfigurationSection {
@@ -130,7 +130,7 @@ public final class Configuration implements ConfigurationSection {
     }
 
     @Override
-    public @NotNull Collection<@NotNull String> getKeys(@NotNull KeyResolver keyResolver) {
+    public @NotNull Set<@NotNull String> getKeys(@NotNull KeyResolver keyResolver) {
         return section.getKeys(keyResolver);
     }
 
