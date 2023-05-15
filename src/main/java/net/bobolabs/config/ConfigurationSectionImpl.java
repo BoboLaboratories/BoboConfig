@@ -121,7 +121,18 @@ class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public @NotNull Set<@NotNull String> getKeys(@NotNull KeyResolver keyResolver) {
-        return getKeys(this, keyResolver);
+        Set<String> accumulator = new HashSet<>();
+        for (Map.Entry<String, Object> entry : data.entrySet()) {
+            if (keyResolver != KeyResolver.ROOT && entry.getValue() instanceof ConfigurationSection section) {
+                for (String subKey : section.getKeys(keyResolver)) {
+                    accumulator.add(entry.getKey() + "." + subKey);
+                }
+            }
+            if (keyResolver != KeyResolver.LEAVES || !(entry.getValue() instanceof ConfigurationSection)) {
+                accumulator.add(entry.getKey());
+            }
+        }
+        return accumulator;
     }
 
     @Override
@@ -313,22 +324,6 @@ class ConfigurationSectionImpl implements ConfigurationSection {
     private @NotNull String getSubPath(@NotNull String path) {
         int index = path.indexOf(SEPARATOR);
         return (index == -1) ? path : path.substring(index + 1);
-    }
-
-    private @NotNull Set<@NotNull String> getKeys(@NotNull ConfigurationSectionImpl config, @NotNull KeyResolver keyResolver) {
-        Set<String> accumulator = new HashSet<>();
-        for (String key : data.keySet()) {
-            Object value = config.get(key);
-            if (keyResolver != KeyResolver.ROOT && value instanceof ConfigurationSection section) {
-                for (String subKey : section.getKeys(keyResolver)) {
-                    accumulator.add(key + "." + subKey);
-                }
-            }
-            if (keyResolver != KeyResolver.LEAVES || !(value instanceof ConfigurationSection)) {
-                accumulator.add(key);
-            }
-        }
-        return accumulator;
     }
 
 }
