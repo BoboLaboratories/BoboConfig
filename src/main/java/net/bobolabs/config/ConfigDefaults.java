@@ -22,7 +22,7 @@
 
 package net.bobolabs.config;
 
-class ConfigDefaults {
+final class ConfigDefaults {
 
     private ConfigDefaults() {
     }

@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-class ConfigurationSectionImpl implements ConfigurationSection {
+final class ConfigurationSectionImpl implements ConfigurationSection {
 
     private static final char SEPARATOR = '.';
 
@@ -79,8 +79,7 @@ class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public @NotNull List<@Nullable Object> getList(@NotNull String path) {
-        Object ret = get(path);
-        return (ret instanceof List<?> list) ? new ArrayList<>(list) : Collections.emptyList();
+        return (get(path) instanceof List<?> list) ? new ArrayList<>(list) : Collections.emptyList();
     }
 
     @Override
@@ -142,8 +141,7 @@ class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public byte getByte(@NotNull String path, byte def) {
-        Object ret = get(path);
-        return (ret instanceof Number n) ? n.byteValue() : def;
+        return (get(path) instanceof Number n) ? n.byteValue() : def;
     }
 
     @Override
@@ -161,8 +159,7 @@ class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public short getShort(@NotNull String path, short def) {
-        Object ret = get(path);
-        return (ret instanceof Number n) ? n.shortValue() : def;
+        return (get(path) instanceof Number n) ? n.shortValue() : def;
     }
 
     @Override
@@ -177,8 +174,7 @@ class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public int getInt(@NotNull String path, int def) {
-        Object ret = get(path);
-        return (ret instanceof Number n) ? n.intValue() : def;
+        return (get(path) instanceof Number n) ? n.intValue() : def;
     }
 
     @Override
@@ -193,8 +189,7 @@ class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public long getLong(@NotNull String path, long def) {
-        Object ret = get(path);
-        return (ret instanceof Number n) ? n.longValue() : def;
+        return (get(path) instanceof Number n) ? n.longValue() : def;
     }
 
     @Override
@@ -209,8 +204,7 @@ class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public float getFloat(@NotNull String path, float def) {
-        Object ret = get(path);
-        return (ret instanceof Number n) ? n.floatValue() : def;
+        return (get(path) instanceof Number n) ? n.floatValue() : def;
     }
 
     @Override
@@ -225,8 +219,7 @@ class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public double getDouble(@NotNull String path, double def) {
-        Object ret = get(path);
-        return (ret instanceof Number n) ? n.doubleValue() : def;
+        return (get(path) instanceof Number n) ? n.doubleValue() : def;
     }
 
     @Override
@@ -241,8 +234,7 @@ class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public boolean getBoolean(@NotNull String path, boolean def) {
-        Object ret = get(path);
-        return (ret instanceof Boolean bool) ? bool : def;
+        return (get(path) instanceof Boolean bool) ? bool : def;
     }
 
     @Override
@@ -260,8 +252,7 @@ class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public @Nullable String getString(@NotNull String path, @Nullable String def) {
-        Object ret = get(path);
-        return (ret instanceof String str) ? str : def;
+        return (get(path) instanceof String str) ? str : def;
     }
 
     @Override
@@ -280,7 +271,7 @@ class ConfigurationSectionImpl implements ConfigurationSection {
     @Override
     public <T extends Enum<T>> @Nullable T getEnum(@NotNull String path, @NotNull Class<T> enumClass, @Nullable T def) {
         String str = getString(path);
-        return (str != null) ? Enum.valueOf(enumClass, str) : def;
+        return str != null ? Enum.valueOf(enumClass, str) : def;
     }
 
     @Override
@@ -323,7 +314,7 @@ class ConfigurationSectionImpl implements ConfigurationSection {
 
     private @NotNull String getSubPath(@NotNull String path) {
         int index = path.indexOf(SEPARATOR);
-        return (index == -1) ? path : path.substring(index + 1);
+        return index == -1 ? path : path.substring(index + 1);
     }
 
 }

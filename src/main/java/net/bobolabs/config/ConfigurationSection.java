@@ -135,8 +135,8 @@ public interface ConfigurationSection {
     <T extends Enum<T>> List<@NotNull T> getEnumList(@NotNull String path, @NotNull Class<T> enumClass);
 
 
-    // TODO <T> T getObject(@NotNull String path, @NotNull Function<ConfigurationSection, T> parser);
+    // TODO: <T> T getObject(@NotNull String path, @NotNull Function<ConfigurationSection, T> parser);
 
-    // TODO <T> T getObjectList(@NotNull String path, @NotNull Function<ConfigurationSection, T> parser);
+    // TODO: <T> T getObjectList(@NotNull String path, @NotNull Function<ConfigurationSection, T> parser);
 
 }
