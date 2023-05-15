@@ -1,0 +1,67 @@
+values:
+  byte: 1
+  short: 2
+  int: 3
+  long: 4
+  float: 5.1
+  double: 6.2
+  boolean: true
+  string: 'sette :D'
+  enum: TEST_1
+
+lists:
+  bytes:
+    - 0
+    - -128
+    -
+    - 127
+  shorts:
+    - 0
+    - -32768
+    -
+    - 32767
+  ints:
+    - 0
+    - -2147483648
+    -
+    - 2147483647
+  longs:
+    - 0
+    - -9223372036854775808
+    -
+    - 9223372036854775807
+  doubles:
+    - 0
+    - 4.9E-324
+    -
+    - 1.7976931348623157E308
+  floats:
+    - 0
+    - 1.4E-45
+    -
+    - 3.4028235E38
+  booleans:
+    1:
+      - yes
+      - no
+    2:
+      - true
+      - false
+    3:
+      -
+      - ""
+      - 1
+  strings:
+    - 1
+    -
+    - "c"
+    - ""
+    - A
+    - 5.0
+  enums:
+    - TEST_1
+    - TEST_2
+    - HELLO
+    - 3
+    -
+    - ""

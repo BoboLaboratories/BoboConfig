@@ -1,14 +1,14 @@
 import java.time.LocalDateTime
 
 plugins {
-    id 'com.github.johnrengelman.shadow' version '7.1.2'
+//    id 'com.github.johnrengelman.shadow' version '7.1.2'
     id 'org.cadixdev.licenser' version '0.6.1'
     id 'maven-publish'
     id 'java-library'
 }
 
 group = 'net.bobolabs'
-version = '1.1.0'
+version = '2.0.0'
 
 repositories {
     maven { url = 'https://repo.bobolabs.net/repository/maven-public/' }    // :D
@@ -72,32 +72,41 @@ publishing {
         }
     }
     publications {
-        shadow(MavenPublication) { publication ->
+//        shadow(MavenPublication) { publication ->
+//            groupId = project.group
+//            artifactId = project.name
+//            version = project.version
+//
+//            project.shadow.component(publication)
+//        }
+        maven(MavenPublication) {
             groupId = project.group
             artifactId = project.name
             version = project.version
 
-            project.shadow.component(publication)
+            from components.java
         }
     }
 }
 
-shadowJar {
-    archiveBaseName.set(project.name)
-    archiveClassifier.set('')
-
-    relocate 'net.md_5.bungee.config', 'net.bobolabs.libs.net.md_5.bungee.config'
-
-    dependencies {
-        exclude(dependency('com.google.guava:'))
-        exclude(dependency('com.google.j2objc:'))
-        exclude(dependency('com.google.errorprone:'))
-        exclude(dependency('com.google.code.findbugs:'))
-        exclude(dependency('org.checkerframework:'))
-    }
-
-    from "${project.rootDir}/LICENSE.txt"
+jar {
+    from "LICENSE.txt"
 }
+
+//shadowJar {
+//    archiveBaseName.set(project.name)
+//    archiveClassifier.set('')
+//
+//    dependencies {
+//        exclude(dependency('com.google.guava:'))
+//        exclude(dependency('com.google.j2objc:'))
+//        exclude(dependency('com.google.errorprone:'))
+//        exclude(dependency('com.google.code.findbugs:'))
+//        exclude(dependency('org.checkerframework:'))
+//    }
+//
+//    from "${project.rootDir}/LICENSE.txt"
+//}
 
 license {
     header = project.file('HEADER.txt')
@@ -109,5 +118,5 @@ license {
     }
 }
 
-tasks.jar.enabled = false
-tasks.build.dependsOn(shadowJar)
+//tasks.jar.enabled = false
+//tasks.build.dependsOn(shadowJar)

@@ -51,30 +51,6 @@ public final class Configuration implements ConfigurationSection {
         load();
     }
 
-    private void load() {
-        lock.writeLock().lock();
-        try {
-            try (InputStream in = new FileInputStream(file)) {
-                Map<String, Object> data = yaml.get().load(in);
-                section = new ConfigurationSectionImpl(this, data);
-            } catch (IOException e) {
-                throw new RuntimeException(e); // TODO
-            }
-        } finally {
-            lock.writeLock().unlock();
-        }
-    }
-
-    public void reload() {
-        load();
-    }
-
-    void autoSave() {
-        if (autoSave) {
-            save();
-        }
-    }
-
     public void save() {
         lock.writeLock().lock();
         try (Writer writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
@@ -86,12 +62,8 @@ public final class Configuration implements ConfigurationSection {
         }
     }
 
-    @NotNull ReentrantReadWriteLock.ReadLock readLock() {
-        return lock.readLock();
-    }
-
-    @NotNull ReentrantReadWriteLock.WriteLock writeLock() {
-        return lock.writeLock();
+    public void reload() {
+        load();
     }
 
     @Override
@@ -267,6 +239,39 @@ public final class Configuration implements ConfigurationSection {
     @Override
     public @NotNull <T extends Enum<T>> List<@NotNull T> getEnumList(@NotNull String path, @NotNull Class<T> enumClass) {
         return section.getEnumList(path, enumClass);
+    }
+
+
+    // ============================================
+    //                   INTERNAL
+    // ============================================
+
+    @NotNull ReentrantReadWriteLock.ReadLock readLock() {
+        return lock.readLock();
+    }
+
+    @NotNull ReentrantReadWriteLock.WriteLock writeLock() {
+        return lock.writeLock();
+    }
+
+    void autoSave() {
+        if (autoSave) {
+            save();
+        }
+    }
+
+    private void load() {
+        lock.writeLock().lock();
+        try {
+            try (InputStream in = new FileInputStream(file)) {
+                Map<String, Object> data = yaml.get().load(in);
+                section = new ConfigurationSectionImpl(this, data);
+            } catch (IOException e) {
+                throw new RuntimeException(e); // TODO
+            }
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
 }

@@ -23,7 +23,9 @@
 package net.bobolabs.config;
 
 import org.jetbrains.annotations.NotNull;
+import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.representer.Representer;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,7 +34,12 @@ import java.nio.file.Files;
 
 public final class ConfigurationBuilder {
 
-    private static final ThreadLocal<Yaml> yaml = ThreadLocal.withInitial(Yaml::new);
+    private static final ThreadLocal<Yaml> yaml = ThreadLocal.withInitial(() -> {
+        DumperOptions options = new DumperOptions();
+        options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+        Representer representer = new ConfigurationRepresenter(options);
+        return new Yaml(representer, options);
+    });
 
     private final File file;
 

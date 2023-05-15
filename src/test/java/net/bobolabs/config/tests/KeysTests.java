@@ -45,7 +45,7 @@ class KeysTests {
 
     @BeforeAll
     static void beforeAll() throws IOException {
-        String file = "keys.yml";
+        String file = "keys_test_config.yml";
         File configFile = directory.resolve(file).toFile();
 
         config = ConfigurationBuilder

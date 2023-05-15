@@ -47,7 +47,7 @@ class ReadTests {
 
     @BeforeAll
     static void beforeAll() throws IOException {
-        String file = "config.yml";
+        String file = "test_config.yml";
         File configFile = directory.resolve(file).toFile();
 
         config = ConfigurationBuilder
@@ -126,8 +126,7 @@ class ReadTests {
 
     @Test
     void getByteList() {
-        // ours
-        assertEquals(List.of((byte) 0, Byte.MIN_VALUE, Byte.MAX_VALUE, (byte) 1000), config.getByteList("lists.bytes"));
+        assertEquals(List.of((byte) 0, Byte.MIN_VALUE, Byte.MAX_VALUE), config.getByteList("lists.bytes"));
     }
 
     @Test
@@ -143,7 +142,10 @@ class ReadTests {
         assertEquals(md5.getShort("non.existing.key", (short) -1), config.getShort("non.existing.key", (short) -1));
     }
 
-    // TODO short list
+    @Test
+    void getShortList() {
+        assertEquals(List.of((short) 0, Short.MIN_VALUE, Short.MAX_VALUE), config.getShortList("lists.shorts"));
+    }
 
     @Test
     void getInt() {
@@ -158,7 +160,10 @@ class ReadTests {
         assertEquals(md5.getInt("non.existing.key", -1), config.getInt("non.existing.key", -1));
     }
 
-    // TODO int list
+    @Test
+    void getIntList() {
+        assertEquals(List.of(0, Integer.MIN_VALUE, Integer.MAX_VALUE), config.getIntList("lists.ints"));
+    }
 
     @Test
     void getLong() {
@@ -173,7 +178,10 @@ class ReadTests {
         assertEquals(md5.getLong("non.existing.key", -1L), config.getLong("non.existing.key", -1L));
     }
 
-    // TODO long list
+    @Test
+    void getLongList() {
+        assertEquals(List.of(0L, Long.MIN_VALUE, Long.MAX_VALUE), config.getLongList("lists.longs"));
+    }
 
     @Test
     void getFloat() {
@@ -188,7 +196,10 @@ class ReadTests {
         assertEquals(md5.getFloat("non.existing.key", -1f), config.getFloat("non.existing.key", -1f));
     }
 
-    // TODO float list
+    @Test
+    void getFloatList() {
+        assertEquals(List.of(0f, Float.MIN_VALUE, Float.MAX_VALUE), config.getFloatList("lists.floats"));
+    }
 
     @Test
     void getDouble() {
@@ -203,7 +214,10 @@ class ReadTests {
         assertEquals(md5.getDouble("non.existing.key", -1D), config.getDouble("non.existing.key", -1D));
     }
 
-    // TODO double list
+    @Test
+    void getDoubleList() {
+        assertEquals(List.of(0D, Double.MIN_VALUE, Double.MAX_VALUE), config.getDoubleList("lists.doubles"));
+    }
 
     @Test
     void getBoolean() {
@@ -241,22 +255,22 @@ class ReadTests {
 
     @Test
     void getStringList() {
-        assertEquals(List.of("1", "c", ""), config.getStringList("values.list1"));
+        assertEquals(List.of("1", "c", "", "A", "5.0"), config.getStringList("lists.strings"));
     }
 
     @Test
     void getEnum() {
         // ours
-        assertEquals(TestEnum.TEST1, config.getEnum("values.enum", TestEnum.class));
+        assertEquals(TestEnum.TEST_1, config.getEnum("values.enum", TestEnum.class));
         assertNull(config.getEnum("non.existing.key", TestEnum.class));
-        assertEquals(TestEnum.TEST2, config.getEnum("non.existing.key", TestEnum.class, TestEnum.TEST2));
+        assertEquals(TestEnum.TEST_2, config.getEnum("non.existing.key", TestEnum.class, TestEnum.TEST_2));
 
         // md_5 does not support enums
     }
 
     @Test
     void getEnumList() {
-        assertEquals(List.of(TestEnum.TEST1, TestEnum.TEST2), config.getEnumList("lists.enums", TestEnum.class));
+        assertEquals(List.of(TestEnum.TEST_1, TestEnum.TEST_2), config.getEnumList("lists.enums", TestEnum.class));
 
         // md_5 does not support enums
     }

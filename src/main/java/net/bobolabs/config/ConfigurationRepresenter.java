@@ -20,11 +20,17 @@
  * along with BoboConfig.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package net.bobolabs.config.tests;
+package net.bobolabs.config;
 
-public enum TestEnum {
+import org.jetbrains.annotations.NotNull;
+import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.representer.Representer;
 
-    TEST_1,
-    TEST_2
+final class ConfigurationRepresenter extends Representer {
+
+    ConfigurationRepresenter(@NotNull DumperOptions options) {
+        super(options);
+        this.representers.put(ConfigurationSectionImpl.class, data -> represent(((ConfigurationSectionImpl) data).getData()));
+    }
 
 }

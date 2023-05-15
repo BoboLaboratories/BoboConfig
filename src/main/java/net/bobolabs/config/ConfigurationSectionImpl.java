@@ -34,16 +34,18 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
     private final Map<String, Object> data;
     private final Configuration root;
 
-    ConfigurationSectionImpl(@NotNull Configuration root, @NotNull Map<?, ?> ext) {
+    ConfigurationSectionImpl(@NotNull Configuration root, @Nullable Map<?, ?> ext) {
         this.data = new LinkedHashMap<>();
         this.root = root;
 
-        for (Map.Entry<?, ?> entry : ext.entrySet()) {
-            String key = entry.getKey().toString();
-            if (entry.getValue() instanceof Map<?, ?> sectionData) {
-                data.put(key, new ConfigurationSectionImpl(root, sectionData));
-            } else {
-                data.put(key, entry.getValue());
+        if (ext != null) {
+            for (Map.Entry<?, ?> entry : ext.entrySet()) {
+                String key = entry.getKey().toString();
+                if (entry.getValue() instanceof Map<?, ?> sectionData) {
+                    data.put(key, new ConfigurationSectionImpl(root, sectionData));
+                } else {
+                    data.put(key, entry.getValue());
+                }
             }
         }
     }
@@ -95,10 +97,22 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
                 if (value == null) {
                     data.remove(path);
                 } else {
+                    if (value instanceof Enum<?> e) {
+                        value = e.name();
+                    }
                     data.put(path, value);
                 }
             } else {
-                section.get(getSubPath(path), value); // TODO
+                int index = path.indexOf(SEPARATOR);
+                String key = path.substring(0, index);
+                String subPath = path.substring(index + 1);
+
+                if (section == null) {
+                    section = new ConfigurationSectionImpl(root, null);
+                    data.put(key, section);
+                }
+
+                section.set(subPath, value);
             }
 
             root.autoSave();
@@ -122,13 +136,13 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
     public @NotNull Set<@NotNull String> getKeys(@NotNull KeyResolver keyResolver) {
         Set<String> accumulator = new HashSet<>();
         for (Map.Entry<String, Object> entry : data.entrySet()) {
+            if (keyResolver != KeyResolver.LEAVES || !(entry.getValue() instanceof ConfigurationSection)) {
+                accumulator.add(entry.getKey());
+            }
             if (keyResolver != KeyResolver.ROOT && entry.getValue() instanceof ConfigurationSection section) {
                 for (String subKey : section.getKeys(keyResolver)) {
                     accumulator.add(entry.getKey() + "." + subKey);
                 }
-            }
-            if (keyResolver != KeyResolver.LEAVES || !(entry.getValue() instanceof ConfigurationSection)) {
-                accumulator.add(entry.getKey());
             }
         }
         return accumulator;
@@ -164,7 +178,10 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public @NotNull List<@NotNull Short> getShortList(@NotNull String path) {
-        return null; // TODO
+        return getList(path).stream()
+                .filter(Number.class::isInstance)
+                .map(elem -> ((Number) elem).shortValue())
+                .toList();
     }
 
     @Override
@@ -179,7 +196,10 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public @NotNull List<@NotNull Integer> getIntList(@NotNull String path) {
-        return null; // TODO
+        return getList(path).stream()
+                .filter(Number.class::isInstance)
+                .map(elem -> ((Number) elem).intValue())
+                .toList();
     }
 
     @Override
@@ -194,7 +214,10 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public @NotNull List<@NotNull Long> getLongList(@NotNull String path) {
-        return null; // TODO
+        return getList(path).stream()
+                .filter(Number.class::isInstance)
+                .map(elem -> ((Number) elem).longValue())
+                .toList();
     }
 
     @Override
@@ -209,7 +232,10 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public @NotNull List<@NotNull Float> getFloatList(@NotNull String path) {
-        return null; // TODO
+        return getList(path).stream()
+                .filter(Number.class::isInstance)
+                .map(elem -> ((Number) elem).floatValue())
+                .toList();
     }
 
     @Override
@@ -224,7 +250,10 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public @NotNull List<@NotNull Double> getDoubleList(@NotNull String path) {
-        return null; // TODO
+        return getList(path).stream()
+                .filter(Number.class::isInstance)
+                .map(elem -> ((Number) elem).doubleValue())
+                .toList();
     }
 
     @Override
