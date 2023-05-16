@@ -39,24 +39,31 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
         this.root = root;
 
         if (ext != null) {
-            for (Map.Entry<?, ?> entry : ext.entrySet()) {
-                String key = entry.getKey().toString();
-                if (entry.getValue() instanceof Map<?, ?> sectionData) {
-                    data.put(key, new ConfigurationSectionImpl(root, sectionData));
-                } else {
-                    data.put(key, entry.getValue());
+            root.writeLock().lock();
+            try {
+                for (Map.Entry<?, ?> entry : ext.entrySet()) {
+                    String key = entry.getKey().toString();
+                    if (entry.getValue() instanceof Map<?, ?> sectionData) {
+                        data.put(key, new ConfigurationSectionImpl(root, sectionData));
+                    } else {
+                        data.put(key, entry.getValue());
+                    }
                 }
+            } finally {
+                root.writeLock().unlock();
             }
         }
     }
 
     @Override
     public boolean contains(@NotNull String path) {
+        // get already acquires lock
         return get(path) != null;
     }
 
     @Override
     public @Nullable Object get(@NotNull String path) {
+        // get already acquires lock
         return get(path, null);
     }
 
@@ -80,8 +87,32 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
+    public <T> T getOrSet(@NotNull String path, @NotNull T value) {
+        root.writeLock().lock();
+        try {
+            T ret = (T) get(path);
+            if (ret == null) {
+                set(path, value);
+                ret = value;
+            }
+            return ret;
+        } finally {
+            root.writeLock().unlock();
+        }
+    }
+
+    @Override
     public @NotNull List<@Nullable Object> getList(@NotNull String path) {
-        return (get(path) instanceof List<?> list) ? new ArrayList<>(list) : Collections.emptyList();
+        // lock needed to prevent concurrent modifications on the list while
+        // copying using copy constructor (returned pointer points to the
+        // same list that would be modified by write operations)
+        root.readLock().lock();
+        try {
+            return (get(path) instanceof List<?> list) ? new ArrayList<>(list) : Collections.emptyList();
+        } finally {
+            root.readLock().unlock();
+        }
     }
 
     @Override
@@ -104,12 +135,12 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
                 }
             } else {
                 int index = path.indexOf(SEPARATOR);
-                String key = path.substring(0, index);
+                String rootPath = path.substring(0, index);
                 String subPath = path.substring(index + 1);
 
                 if (section == null) {
                     section = new ConfigurationSectionImpl(root, null);
-                    data.put(key, section);
+                    data.put(rootPath, section);
                 }
 
                 section.set(subPath, value);
@@ -122,30 +153,54 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
     }
 
     @Override
+    public void unset(@NotNull String path) {
+        // set already acquires lock
+        set(path, null);
+    }
+
+    @Override
     public @Nullable ConfigurationSection getSection(@NotNull String path) {
+        // getSection already acquires lock
         return getSection(path, null);
     }
 
     @Override
     public @Nullable ConfigurationSection getSection(@NotNull String path, @Nullable ConfigurationSection def) {
-        ConfigurationSection ret = getSectionFor(path);
-        return ret != null ? ret : def;
+        root.readLock().lock();
+        try {
+            ConfigurationSection ret = getSectionFor(path);
+            String subPath = getSubPath(path);
+            ConfigurationSection section = def;
+            if (ret == this) {
+                section = (ConfigurationSection) data.get(subPath);
+            } else if (ret != null) {
+                section = ret.getSection(subPath, def);
+            }
+            return section;
+        } finally {
+            root.readLock().unlock();
+        }
     }
 
     @Override
     public @NotNull Set<@NotNull String> getKeys(@NotNull KeyResolver keyResolver) {
-        Set<String> accumulator = new HashSet<>();
-        for (Map.Entry<String, Object> entry : data.entrySet()) {
-            if (keyResolver != KeyResolver.LEAVES || !(entry.getValue() instanceof ConfigurationSection)) {
-                accumulator.add(entry.getKey());
-            }
-            if (keyResolver != KeyResolver.ROOT && entry.getValue() instanceof ConfigurationSection section) {
-                for (String subKey : section.getKeys(keyResolver)) {
-                    accumulator.add(entry.getKey() + "." + subKey);
+        root.readLock().lock();
+        try {
+            Set<String> accumulator = new HashSet<>();
+            for (Map.Entry<String, Object> entry : data.entrySet()) {
+                if (keyResolver != KeyResolver.LEAVES || !(entry.getValue() instanceof ConfigurationSection)) {
+                    accumulator.add(entry.getKey());
+                }
+                if (keyResolver != KeyResolver.ROOT && entry.getValue() instanceof ConfigurationSection section) {
+                    for (String subKey : section.getKeys(keyResolver)) {
+                        accumulator.add(entry.getKey() + "." + subKey);
+                    }
                 }
             }
+            return accumulator;
+        } finally {
+            root.readLock().unlock();
         }
-        return accumulator;
     }
 
     @Override
@@ -155,11 +210,13 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public byte getByte(@NotNull String path, byte def) {
+        // lock not needed as Number is unmodifiable
         return (get(path) instanceof Number n) ? n.byteValue() : def;
     }
 
     @Override
     public @NotNull List<@NotNull Byte> getByteList(@NotNull String path) {
+        // lock not needed as getList already returns a new collection
         return getList(path).stream()
                 .filter(Number.class::isInstance)
                 .map(elem -> ((Number) elem).byteValue())
@@ -173,11 +230,13 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public short getShort(@NotNull String path, short def) {
+        // lock not needed as Number is unmodifiable
         return (get(path) instanceof Number n) ? n.shortValue() : def;
     }
 
     @Override
     public @NotNull List<@NotNull Short> getShortList(@NotNull String path) {
+        // lock not needed as getList already returns a new collection
         return getList(path).stream()
                 .filter(Number.class::isInstance)
                 .map(elem -> ((Number) elem).shortValue())
@@ -191,11 +250,13 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public int getInt(@NotNull String path, int def) {
+        // lock not needed as Number is unmodifiable
         return (get(path) instanceof Number n) ? n.intValue() : def;
     }
 
     @Override
     public @NotNull List<@NotNull Integer> getIntList(@NotNull String path) {
+        // lock not needed as getList already returns a new collection
         return getList(path).stream()
                 .filter(Number.class::isInstance)
                 .map(elem -> ((Number) elem).intValue())
@@ -209,11 +270,13 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public long getLong(@NotNull String path, long def) {
+        // lock not needed as Number is unmodifiable
         return (get(path) instanceof Number n) ? n.longValue() : def;
     }
 
     @Override
     public @NotNull List<@NotNull Long> getLongList(@NotNull String path) {
+        // lock not needed as getList already returns a new collection
         return getList(path).stream()
                 .filter(Number.class::isInstance)
                 .map(elem -> ((Number) elem).longValue())
@@ -227,11 +290,13 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public float getFloat(@NotNull String path, float def) {
+        // lock not needed as Number is unmodifiable
         return (get(path) instanceof Number n) ? n.floatValue() : def;
     }
 
     @Override
     public @NotNull List<@NotNull Float> getFloatList(@NotNull String path) {
+        // lock not needed as getList already returns a new collection
         return getList(path).stream()
                 .filter(Number.class::isInstance)
                 .map(elem -> ((Number) elem).floatValue())
@@ -245,11 +310,13 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public double getDouble(@NotNull String path, double def) {
+        // lock not needed as Number is unmodifiable
         return (get(path) instanceof Number n) ? n.doubleValue() : def;
     }
 
     @Override
     public @NotNull List<@NotNull Double> getDoubleList(@NotNull String path) {
+        // lock not needed as getList already returns a new collection
         return getList(path).stream()
                 .filter(Number.class::isInstance)
                 .map(elem -> ((Number) elem).doubleValue())
@@ -263,11 +330,13 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public boolean getBoolean(@NotNull String path, boolean def) {
+        // lock not needed as Boolean is unmodifiable
         return (get(path) instanceof Boolean bool) ? bool : def;
     }
 
     @Override
     public @NotNull List<@NotNull Boolean> getBooleanList(@NotNull String path) {
+        // lock not needed as getList already returns a new collection
         return getList(path).stream()
                 .filter(Boolean.class::isInstance)
                 .map(e -> (Boolean) e)
@@ -281,11 +350,13 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public @Nullable String getString(@NotNull String path, @Nullable String def) {
+        // lock not needed as String is unmodifiable
         return (get(path) instanceof String str) ? str : def;
     }
 
     @Override
     public @NotNull List<@NotNull String> getStringList(@NotNull String path) {
+        // lock not needed as getList already returns a new collection
         return getList(path).stream()
                 .filter(Objects::nonNull)
                 .map(Objects::toString)
@@ -299,12 +370,14 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public <T extends Enum<T>> @Nullable T getEnum(@NotNull String path, @NotNull Class<T> enumClass, @Nullable T def) {
+        // lock not needed as getString already worries about that and String is unmodifiable
         String str = getString(path);
         return str != null ? Enum.valueOf(enumClass, str) : def;
     }
 
     @Override
     public @NotNull <T extends Enum<T>> List<@NotNull T> getEnumList(@NotNull String path, @NotNull Class<T> enumClass) {
+        // lock not needed as getStringList already worries about that and returns a new collection
         List<T> ret = new ArrayList<>();
         for (String str : getStringList(path)) {
             try {
@@ -324,6 +397,10 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @NotNull Map<String, Object> getData() {
         return data;
+    }
+
+    @NotNull Configuration getRoot() {
+        return root;
     }
 
     private @Nullable ConfigurationSection getSectionFor(@NotNull String path) {

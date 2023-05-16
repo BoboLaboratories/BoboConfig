@@ -40,11 +40,15 @@ public interface ConfigurationSection {
     @Contract("_, !null -> !null")
     <T> T get(@NotNull String path, @Nullable T def);
 
+    <T> T getOrSet(@NotNull String path, @NotNull T value);
+
     @NotNull
     @Contract("_ -> new")
     List<@Nullable Object> getList(@NotNull String path);
 
     void set(@NotNull String path, @Nullable Object value);
+
+    void unset(@NotNull String path);
 
     @Nullable
     ConfigurationSection getSection(@NotNull String path);
@@ -124,9 +128,9 @@ public interface ConfigurationSection {
     @Contract("_ -> new")
     List<@NotNull String> getStringList(@NotNull String path);
 
-    @Nullable <T extends Enum<T>> T getEnum(@NotNull String path, @NotNull Class<T> enumClass);
+    @NotNull <T extends Enum<T>> T getEnum(@NotNull String path, @NotNull Class<T> enumClass);
 
-    @Nullable
+    @NotNull
     @Contract("_, _, !null -> !null")
     <T extends Enum<T>> T getEnum(@NotNull String path, @NotNull Class<T> enumClass, @Nullable T def);
 

@@ -57,10 +57,7 @@ class WriteTests {
                 .fromFile(directory.toFile(), FILE_NAME)
                 .setDefaultResource(FILE_NAME)
                 .build();
-    }
 
-    // util
-    void populate() {
         config.set("values.byte", (byte) 1);
         config.set("values.short", (short) 2);
         config.set("values.int", 3);
@@ -74,8 +71,6 @@ class WriteTests {
 
     @Test
     void changesAreWrittenInMemory() {
-        populate();
-
         assertEquals((byte) 1, config.getByte("values.byte"));
         assertEquals((short) 2, config.getShort("values.short"));
         assertEquals(3, config.getInt("values.int"));
@@ -89,20 +84,15 @@ class WriteTests {
 
     @Test
     void changesAreWrittenOnDisk() throws IOException, URISyntaxException {
-        populate();
-
         config.save();
         URL resourceUrl = getClass().getClassLoader().getResource("expected_" + FILE_NAME);
         String expected = Files.readString(Paths.get(Objects.requireNonNull(resourceUrl).toURI()));
         String saved = Files.readString(directory.resolve(FILE_NAME));
-
         assertEquals(expected, saved);
     }
 
     @Test
     void reloadDoesIndeedReload_1() {
-        populate();
-
         assertEquals((byte) 1, config.getByte("values.byte"));
         assertEquals((short) 2, config.getShort("values.short"));
         assertEquals(3, config.getInt("values.int"));
@@ -122,8 +112,6 @@ class WriteTests {
 
     @Test
     void reloadDoesIndeedReload_2() throws IOException {
-        populate();
-
         assertEquals((byte) 1, config.getByte("values.byte"));
         assertEquals((short) 2, config.getShort("values.short"));
         assertEquals(3, config.getInt("values.int"));
@@ -150,6 +138,73 @@ class WriteTests {
         assertFalse(config.getBoolean("values.boolean"));
         assertEquals("good bye", config.getString("values.string"));
         assertEquals(TestEnum.TEST_2, config.getEnum("values.enum", TestEnum.class));
+    }
+
+    @Test
+    void setNullRemovesValue() {
+        config.set("values.int", 10); // anything that we're sure is not 0
+        config.set("values.int", null);
+        assertEquals(0, config.getInt("values.int"));
+    }
+
+    @Test
+    void setNullRemovesSection() {
+        config.set("section.s1", null);
+        assertNull(config.getSection("section.s1"));
+    }
+
+    @Test
+    void setNullValueRemovesFromFile() {
+        config.set("values.int", null);
+        config.save();
+        config.reload();
+        assertEquals(0, config.getInt("values.int"));
+    }
+
+    @Test
+    void setNullSectionRemovesFromFile() {
+        config.set("values", null);
+        config.save();
+        config.reload();
+        assertEquals(Collections.emptySet(), config.getKeys(KeyResolver.BRANCHES));
+    }
+
+    @Test
+    void unsetValueRemovesValue() {
+        config.unset("values.int");
+        assertEquals(0, config.getInt("values.int"));
+    }
+
+    @Test
+    void unsetRemovesSection() {
+        config.unset("section.s1");
+        assertNull(config.getSection("section.s1"));
+    }
+
+
+    @Test
+    void unsetValueRemovesFromFile() {
+        config.unset("values.int");
+        config.save();
+        config.reload();
+        assertEquals(0, config.getInt("values.int"));
+    }
+
+    @Test
+    void unsetSectionRemovesFromFile() {
+        config.unset("values");
+        config.save();
+        config.reload();
+        assertEquals(Collections.emptySet(), config.getKeys(KeyResolver.BRANCHES));
+    }
+
+    @Test
+    void getOrSet() {
+        Object object = new Object(); // any object
+        assertFalse(config.contains("non.existing.key"));
+        assertSame(object, config.getOrSet("non.existing.key", object));
+        assertTrue(config.contains("non.existing.key"));
+        assertSame(object, config.get("non.existing.key"));
     }
 
 }

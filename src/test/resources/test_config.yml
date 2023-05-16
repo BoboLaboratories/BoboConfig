@@ -9,6 +9,15 @@ values:
   string: 'sette :D'
   enum: TEST_1
 
+section:
+  s1:
+    s1_s1:
+      path1: 1
+      path2: 2
+  s2:
+    path3: 3
+    path4: 4
+
 lists:
   bytes:
     - 0

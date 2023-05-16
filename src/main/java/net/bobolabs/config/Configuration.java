@@ -43,7 +43,7 @@ public final class Configuration implements ConfigurationSection {
     private ConfigurationSectionImpl section;
 
     Configuration(@NotNull ThreadLocal<Yaml> yaml, @NotNull File file, boolean autoSave) {
-        this.lock = new ReentrantReadWriteLock();
+        this.lock = new ReentrantReadWriteLock(true);
         this.autoSave = autoSave;
         this.yaml = yaml;
         this.file = file;
@@ -52,13 +52,13 @@ public final class Configuration implements ConfigurationSection {
     }
 
     public void save() {
-        lock.writeLock().lock();
+        writeLock().lock();
         try (Writer writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
             yaml.get().dump(section.getData(), writer);
         } catch (IOException e) {
-            e.printStackTrace(); // TODO ?
+            e.printStackTrace();
         } finally {
-            lock.writeLock().unlock();
+            writeLock().unlock();
         }
     }
 
@@ -82,6 +82,11 @@ public final class Configuration implements ConfigurationSection {
     }
 
     @Override
+    public <T> T getOrSet(@NotNull String path, @NotNull T value) {
+        return section.getOrSet(path, value);
+    }
+
+    @Override
     public @NotNull List<@Nullable Object> getList(@NotNull String path) {
         return section.getList(path);
     }
@@ -89,6 +94,11 @@ public final class Configuration implements ConfigurationSection {
     @Override
     public void set(@NotNull String path, @Nullable Object value) {
         section.set(path, value);
+    }
+
+    @Override
+    public void unset(@NotNull String path) {
+        section.unset(path);
     }
 
     @Override
@@ -261,16 +271,16 @@ public final class Configuration implements ConfigurationSection {
     }
 
     private void load() {
-        lock.writeLock().lock();
+        writeLock().lock();
         try {
             try (InputStream in = new FileInputStream(file)) {
                 Map<String, Object> data = yaml.get().load(in);
                 section = new ConfigurationSectionImpl(this, data);
             } catch (IOException e) {
-                throw new RuntimeException(e); // TODO
+                e.printStackTrace();
             }
         } finally {
-            lock.writeLock().unlock();
+            writeLock().unlock();
         }
     }
 

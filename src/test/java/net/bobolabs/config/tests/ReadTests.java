@@ -24,6 +24,8 @@ package net.bobolabs.config.tests;
 
 import net.bobolabs.config.Configuration;
 import net.bobolabs.config.ConfigurationBuilder;
+import net.bobolabs.config.ConfigurationSection;
+import net.bobolabs.config.KeyResolver;
 import net.md_5.bungee.config.YamlConfiguration;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -34,7 +36,10 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ReadTests {
@@ -64,7 +69,10 @@ class ReadTests {
     void contains() {
         // ours
         assertTrue(config.contains("values.byte"));
+        assertNotNull(config.get("values.byte"));
+
         assertFalse(config.contains("non.existing.key"));
+        assertNull(config.get("non.existing.key"));
 
         // behaves like md_5
         assertEquals(config.contains("values.byte"), md5.contains("values.byte"));
@@ -95,21 +103,29 @@ class ReadTests {
         assertSame(md5.get("values.byte", def), config.get("values.byte", def));
     }
 
-    // TODO set
-
     @Test
     void getSection() { // TODO
         // ours
+        assertNotNull(config.getSection("section"));
         assertNull(config.getSection("non.existing.key"));
+
+        ConfigurationSection section1 = Objects.requireNonNull(config.getSection("section"));
+        ConfigurationSection subSection2 = Objects.requireNonNull(section1.getSection("s2"));
+        assertEquals(Set.of("s1.s1_s1.path1", "s1.s1_s1.path2", "s2.path3", "s2.path4"), section1.getKeys(KeyResolver.LEAVES));
+        assertEquals(Set.of("path3", "path4"), subSection2.getKeys(KeyResolver.LEAVES));
+        ClassCastException e = assertThrows(ClassCastException.class, () -> subSection2.getSection("path3"));
+        assertThat(e).hasMessageThat().contains("class java.lang.Integer cannot be cast to class " + ConfigurationSection.class.getCanonicalName());
+        assertNull(subSection2.getSection("path5"));
 
         // behaves like md_5 -- NO, we do not silently create the section.
     }
 
-    // TODO getSection with default
-
-    //       !! DO NOT REMOVE !!
-    // getKeys(...) has its own test file
-    //       !! DO NOT REMOVE !!
+    @Test
+    void getSectionWithDefault() {
+        ConfigurationSection def = config.getSection("section.s2");
+        ConfigurationSection section = config.getSection("non.existing.key", def);
+        assertSame(def, section);
+    }
 
     @Test
     void getByte() {

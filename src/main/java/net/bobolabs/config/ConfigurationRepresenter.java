@@ -30,7 +30,15 @@ final class ConfigurationRepresenter extends Representer {
 
     ConfigurationRepresenter(@NotNull DumperOptions options) {
         super(options);
-        this.representers.put(ConfigurationSectionImpl.class, data -> represent(((ConfigurationSectionImpl) data).getData()));
+        this.representers.put(ConfigurationSectionImpl.class, data -> {
+            ConfigurationSectionImpl section = (ConfigurationSectionImpl) data;
+            section.getRoot().writeLock().lock();
+            try {
+                return represent(section.getData());
+            } finally {
+                section.getRoot().writeLock().unlock();
+            }
+        });
     }
 
 }
