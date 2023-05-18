@@ -19,6 +19,13 @@ section:
     path4: 4
 
 lists:
+  objects:
+    - 0
+    - A
+    -
+    - ""
+    - [2, 1]
+    - null
   bytes:
     - 0
     - -128

@@ -72,7 +72,7 @@ public final class Configuration implements ConfigurationSection {
     }
 
     @Override
-    public @Nullable Object get(@NotNull String path) {
+    public @NotNull Object get(@NotNull String path) {
         return section.get(path);
     }
 
@@ -82,7 +82,7 @@ public final class Configuration implements ConfigurationSection {
     }
 
     @Override
-    public <T> T getOrSet(@NotNull String path, @NotNull T value) {
+    public <T> @NotNull T getOrSet(@NotNull String path, @NotNull T value) {
         return section.getOrSet(path, value);
     }
 
@@ -99,6 +99,16 @@ public final class Configuration implements ConfigurationSection {
     @Override
     public void unset(@NotNull String path) {
         section.unset(path);
+    }
+
+    @Override
+    public @NotNull ConfigurationSection createSection(@NotNull String path) {
+        return section.createSection(path);
+    }
+
+    @Override
+    public @NotNull ConfigurationSection getOrCreateSection(@NotNull String path) {
+        return section.getOrCreateSection(path);
     }
 
     @Override

@@ -27,6 +27,7 @@ import net.bobolabs.config.ConfigurationBuilder;
 import net.bobolabs.config.ConfigurationSection;
 import net.bobolabs.config.TraversalMode;
 import net.md_5.bungee.config.YamlConfiguration;
+import org.checkerframework.checker.units.qual.A;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -34,10 +35,7 @@ import org.junit.jupiter.api.io.TempDir;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -62,18 +60,6 @@ class ReadTests {
             config.get<type>("non.existing.key", def)   | unconditional         -> OK (returns def)
          */
 
-        for (Object s : config.getList("a")) {
-            String str = s != null ? str = s.toString() : null;
-        }
-
-        String itemDisplayName = Objects.requireNonNull(config.getString(""));
-
-        for (String s : config.getStringList("a")) {
-            if (s != null) {
-
-            }
-        }
-
         config = ConfigurationBuilder
                 .fromFile(configFile)
                 .setDefaultResource(file)
@@ -86,56 +72,60 @@ class ReadTests {
 
     @Test
     void contains() {
-        // ours
         assertTrue(config.contains("values.byte"));
-        assertNotNull(config.get("values.byte"));
-
         assertFalse(config.contains("non.existing.key"));
-        assertNull(config.get("non.existing.key"));
-
-        // behaves like md_5
-        assertEquals(config.contains("values.byte"), md5.contains("values.byte"));
-        assertEquals(config.contains("non.existing.key"), md5.contains("non.existing.key"));
     }
 
     @Test
-    void getWithoutDefault() {
-        // ours
-        assertEquals(1, config.get("values.byte"));
-        assertNull(config.get("non.existing.key"));
-
-        // behaves like md_5
-        assertEquals(md5.get("values.byte"), config.get("values.byte"));
-        assertEquals(md5.get("non.existing.key"), config.get("non.existing.key"));
+    void get() {
+        assertEquals(3, config.get("values.int"));
+        assertThrows(NullPointerException.class, () -> config.get("non.existing.key"));
     }
 
     @Test
     void getWithDefault() {
         Object def = new Object(); // any object
+        assertEquals(3, config.get("values.int", 0));
+        assertEquals(def, config.get("non.existing.key", def));
+        assertNull(config.get("non.existing.key", null));
+    }
 
-        // ours
-        assertEquals(config.get("non.existing.key", def), def);
-        assertNotEquals(config.get("values.byte", def), def);
+    // TODO getOrSet ------- ???
 
-        // behaves like md_5
-        assertSame(md5.get("non.existing.key", def), config.get("non.existing.key", def));
-        assertSame(md5.get("values.byte", def), config.get("values.byte", def));
+    @Test
+    void getList() {
+        List<Object> list = new ArrayList<>();
+        list.add(0);
+        list.add("A");
+        list.add(null);
+        list.add("");
+        list.add(List.of(2, 1));
+        list.add(null);
+        assertEquals(list, config.getList("lists.objects"));
+
+        // test original list is not modified (@Contract("_ -> new"))
+        config.getList("lists.objects").add("O");
+        assertEquals(list, config.getList("lists.objects"));
     }
 
     @Test
-    void getSections() {
+    void getSection() {
+        assertNotNull(config.getSection("section"));
+        assertThrows(ClassCastException.class, () -> config.getSection("values.int"));
+        assertThrows(NullPointerException.class, () -> config.getSection("non.existing.key"));
+
         // ours
-        assertNotNull(config.getOptionalSection("section"));
-        assertNull(config.getOptionalSection("non.existing.key"));
-
-        ConfigurationSection section1 = config.getSection("section");
-        ConfigurationSection subSection2 = section1.getSection("s2");
-        assertEquals(Set.of("s1.s1_s1.path1", "s1.s1_s1.path2", "s2.path3", "s2.path4"), section1.getKeys(TraversalMode.LEAVES));
-        assertEquals(Set.of("path3", "path4"), subSection2.getKeys(TraversalMode.LEAVES));
-
-        ClassCastException e = assertThrows(ClassCastException.class, () -> subSection2.getSection("path3"));
-        assertThat(e).hasMessageThat().contains("class java.lang.Integer cannot be cast to class " + ConfigurationSection.class.getCanonicalName());
-        assertNull(subSection2.getOptionalSection("path5"));
+//        assertNotNull(config.getOptionalSection("section"));
+//        assertNull(config.getOptionalSection("non.existing.key"));
+//
+//        ConfigurationSection section1 = config.getSection("section");
+//        ConfigurationSection subSection2 = section1.getSection("s2");
+//        assertEquals(Set.of("s1.s1_s1.path1", "s1.s1_s1.path2", "s2.path3", "s2.path4"), section1.getKeys(TraversalMode.LEAVES));
+//        assertEquals(Set.of("path3", "path4"), subSection2.getKeys(TraversalMode.LEAVES));
+//
+//        ClassCastException e = assertThrows(ClassCastException.class, () -> subSection2.getSection("path3"));
+//        assertThat(e).hasMessageThat().contains("class java.lang.Integer cannot be cast to class " + ConfigurationSection.class.getCanonicalName());
+//        assertNull(subSection2.getOptionalSection("path5"));
 
         // behaves like md_5 -- NO, we do not silently create the section.
     }

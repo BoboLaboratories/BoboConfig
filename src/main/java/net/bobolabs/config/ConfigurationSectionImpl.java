@@ -22,6 +22,7 @@
 
 package net.bobolabs.config;
 
+import net.bobolabs.core.Check;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,13 +59,14 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
     @Override
     public boolean contains(@NotNull String path) {
         // get already acquires lock
-        return get(path) != null;
+        return get(path, null) != null;
     }
 
     @Override
-    public @Nullable Object get(@NotNull String path) {
+    public @NotNull Object get(@NotNull String path) {
         // get already acquires lock
-        return get(path, null);
+        Object ret = get(path, null);
+        return Objects.requireNonNull(ret);
     }
 
     @Override
@@ -87,11 +89,10 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <T> T getOrSet(@NotNull String path, @NotNull T value) {
+    public <T> @NotNull T getOrSet(@NotNull String path, @NotNull T value) {
         root.writeLock().lock();
         try {
-            T ret = (T) get(path);
+            T ret = get(path, null);
             if (ret == null) {
                 set(path, value);
                 ret = value;
@@ -159,18 +160,29 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
     }
 
     @Override
+    public @NotNull ConfigurationSection createSection(@NotNull String path) {
+        if (contains(path)) {
+            throw new IllegalArgumentException("path " + path + " already exists in this configuration section");
+        }
+        ConfigurationSection section = new ConfigurationSectionImpl(root, null);
+        set(path, section);
+        return section;
+    }
+
+    @Override
+    public @NotNull ConfigurationSection getOrCreateSection(@NotNull String path) {
+        ConfigurationSection section = getOptionalSection(path);
+        if (section == null) {
+            section = createSection(path);
+        }
+        return section;
+    }
+
+    @Override
     public @NotNull ConfigurationSection getSection(@NotNull String path) {
         // getOptionalSection already acquires lock
         ConfigurationSection section = getOptionalSection(path);
         return Objects.requireNonNull(section);
-    }
-
-    @Override
-    public @Nullable ConfigurationSection getOptionalSection(@NotNull String path) {
-        new ArrayList<>().contains(new Object());
-        new HashMap<>().put(new Object(), "");
-        // getSection already acquires lock
-        return getSection(path, null);
     }
 
     @Override
@@ -189,6 +201,12 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
         } finally {
             root.readLock().unlock();
         }
+    }
+
+    @Override
+    public @Nullable ConfigurationSection getOptionalSection(@NotNull String path) {
+        // getSection already acquires lock
+        return getSection(path, null);
     }
 
     @Override
@@ -214,13 +232,24 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public byte getByte(@NotNull String path) {
-        return getByte(path, (byte) 0);
+        // lock not needed as Number is unmodifiable
+        Object ret = get(path);
+        if (ret instanceof Number n) {
+            return n.byteValue();
+        }
+        throw new ClassCastException(ret.getClass() + " could not be cast to byte");
     }
 
     @Override
     public byte getByte(@NotNull String path, byte def) {
         // lock not needed as Number is unmodifiable
-        return (get(path) instanceof Number n) ? n.byteValue() : def;
+        Object ret = get(path, null);
+        if (ret == null) {
+            return def;
+        } else if (ret instanceof Number n) {
+            return n.byteValue();
+        }
+        throw new ClassCastException(ret.getClass() + " could not be cast to byte");
     }
 
     @Override
@@ -234,13 +263,24 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public short getShort(@NotNull String path) {
-        return getShort(path, (short) 0);
+        // lock not needed as Number is unmodifiable
+        Object ret = get(path);
+        if (ret instanceof Number n) {
+            return n.shortValue();
+        }
+        throw new ClassCastException(ret.getClass() + " could not be cast to short");
     }
 
     @Override
     public short getShort(@NotNull String path, short def) {
         // lock not needed as Number is unmodifiable
-        return (get(path) instanceof Number n) ? n.shortValue() : def;
+        Object ret = get(path, null);
+        if (ret == null) {
+            return def;
+        } else if (ret instanceof Number n) {
+            return n.shortValue();
+        }
+        throw new ClassCastException(ret.getClass() + " could not be cast to short");
     }
 
     @Override
@@ -254,13 +294,24 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public int getInt(@NotNull String path) {
-        return getInt(path, 0);
+        // lock not needed as Number is unmodifiable
+        Object ret = get(path);
+        if (ret instanceof Number n) {
+            return n.intValue();
+        }
+        throw new ClassCastException(ret.getClass() + " could not be cast to integer");
     }
 
     @Override
     public int getInt(@NotNull String path, int def) {
         // lock not needed as Number is unmodifiable
-        return (get(path) instanceof Number n) ? n.intValue() : def;
+        Object ret = get(path, null);
+        if (ret == null) {
+            return def;
+        } else if (ret instanceof Number n) {
+            return n.intValue();
+        }
+        throw new ClassCastException(ret.getClass() + " could not be cast to integer");
     }
 
     @Override
@@ -274,13 +325,24 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public long getLong(@NotNull String path) {
-        return getLong(path, 0);
+        // lock not needed as Number is unmodifiable
+        Object ret = get(path);
+        if (ret instanceof Number n) {
+            return n.longValue();
+        }
+        throw new ClassCastException(ret.getClass() + " could not be cast to long");
     }
 
     @Override
     public long getLong(@NotNull String path, long def) {
         // lock not needed as Number is unmodifiable
-        return (get(path) instanceof Number n) ? n.longValue() : def;
+        Object ret = get(path, null);
+        if (ret == null) {
+            return def;
+        } else if (ret instanceof Number n) {
+            return n.longValue();
+        }
+        throw new ClassCastException(ret.getClass() + " could not be cast to long");
     }
 
     @Override
@@ -294,13 +356,24 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public float getFloat(@NotNull String path) {
-        return getFloat(path, 0);
+        // lock not needed as Number is unmodifiable
+        Object ret = get(path);
+        if (ret instanceof Number n) {
+            return n.floatValue();
+        }
+        throw new ClassCastException(ret.getClass() + " could not be cast to float");
     }
 
     @Override
     public float getFloat(@NotNull String path, float def) {
         // lock not needed as Number is unmodifiable
-        return (get(path) instanceof Number n) ? n.floatValue() : def;
+        Object ret = get(path, null);
+        if (ret == null) {
+            return def;
+        } else if (ret instanceof Number n) {
+            return n.floatValue();
+        }
+        throw new ClassCastException(ret.getClass() + " could not be cast to float");
     }
 
     @Override
@@ -314,13 +387,24 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public double getDouble(@NotNull String path) {
-        return getDouble(path, 0);
+        // lock not needed as Number is unmodifiable
+        Object ret = get(path);
+        if (ret instanceof Number n) {
+            return n.doubleValue();
+        }
+        throw new ClassCastException(ret.getClass() + " could not be cast to double");
     }
 
     @Override
     public double getDouble(@NotNull String path, double def) {
         // lock not needed as Number is unmodifiable
-        return (get(path) instanceof Number n) ? n.doubleValue() : def;
+        Object ret = get(path, null);
+        if (ret == null) {
+            return def;
+        } else if (ret instanceof Number n) {
+            return n.doubleValue();
+        }
+        throw new ClassCastException(ret.getClass() + " could not be cast to double");
     }
 
     @Override
