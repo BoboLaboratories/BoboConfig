@@ -102,8 +102,13 @@ public final class Configuration implements ConfigurationSection {
     }
 
     @Override
-    public @Nullable ConfigurationSection getSection(@NotNull String path) {
+    public @NotNull ConfigurationSection getSection(@NotNull String path) {
         return section.getSection(path);
+    }
+
+    @Override
+    public @Nullable ConfigurationSection getOptionalSection(@NotNull String path) {
+        return section.getOptionalSection(path);
     }
 
     @Override
@@ -112,8 +117,8 @@ public final class Configuration implements ConfigurationSection {
     }
 
     @Override
-    public @NotNull Set<@NotNull String> getKeys(@NotNull KeyResolver keyResolver) {
-        return section.getKeys(keyResolver);
+    public @NotNull Set<@NotNull String> getKeys(@NotNull TraversalMode traversalMode) {
+        return section.getKeys(traversalMode);
     }
 
     @Override

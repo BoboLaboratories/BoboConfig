@@ -31,6 +31,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.UnaryOperator;
 
@@ -104,22 +105,19 @@ public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescrip
         }
     }
 
-    public @Nullable Configuration optionalConfiguration(@NotNull T config) {
+    public @Nullable Configuration getOptionalConfiguration(@NotNull T configuration) {
         lock.readLock().lock();
         try {
-            return configurations.get(config);
+            return configurations.get(configuration);
         } finally {
             lock.readLock().unlock();
         }
     }
 
-    public @NotNull Configuration configuration(@NotNull T config) {
-        lock.readLock().lock();
-        try {
-            return configurations.get(config);
-        } finally {
-            lock.readLock().unlock();
-        }
+    public @NotNull Configuration getConfiguration(@NotNull T configuration) {
+        // getOptionalConfiguration already acquires lock
+        Configuration config = getOptionalConfiguration(configuration);
+        return Objects.requireNonNull(config);
     }
 
 

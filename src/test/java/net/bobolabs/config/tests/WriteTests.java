@@ -24,7 +24,7 @@ package net.bobolabs.config.tests;
 
 import net.bobolabs.config.Configuration;
 import net.bobolabs.config.ConfigurationBuilder;
-import net.bobolabs.config.KeyResolver;
+import net.bobolabs.config.TraversalMode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -107,7 +107,7 @@ class WriteTests {
 
         // there should be no keys left because changes were not written on
         // disk therefore the file that was reloaded was supposed to be empty
-        assertEquals(Collections.emptySet(), config.getKeys(KeyResolver.BRANCHES));
+        assertEquals(Collections.emptySet(), config.getKeys(TraversalMode.BRANCHES));
     }
 
     @Test
@@ -150,7 +150,7 @@ class WriteTests {
     @Test
     void setNullRemovesSection() {
         config.set("section.s1", null);
-        assertNull(config.getSection("section.s1"));
+        assertThrows(NullPointerException.class, () -> config.getSection("section.s1"));
     }
 
     @Test
@@ -166,7 +166,7 @@ class WriteTests {
         config.set("values", null);
         config.save();
         config.reload();
-        assertEquals(Collections.emptySet(), config.getKeys(KeyResolver.BRANCHES));
+        assertEquals(Collections.emptySet(), config.getKeys(TraversalMode.BRANCHES));
     }
 
     @Test
@@ -178,9 +178,8 @@ class WriteTests {
     @Test
     void unsetRemovesSection() {
         config.unset("section.s1");
-        assertNull(config.getSection("section.s1"));
+        assertThrows(NullPointerException.class, () -> config.getSection("section.s1"));
     }
-
 
     @Test
     void unsetValueRemovesFromFile() {
@@ -195,7 +194,7 @@ class WriteTests {
         config.unset("values");
         config.save();
         config.reload();
-        assertEquals(Collections.emptySet(), config.getKeys(KeyResolver.BRANCHES));
+        assertEquals(Collections.emptySet(), config.getKeys(TraversalMode.BRANCHES));
     }
 
     @Test

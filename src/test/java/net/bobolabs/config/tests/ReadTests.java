@@ -25,7 +25,7 @@ package net.bobolabs.config.tests;
 import net.bobolabs.config.Configuration;
 import net.bobolabs.config.ConfigurationBuilder;
 import net.bobolabs.config.ConfigurationSection;
-import net.bobolabs.config.KeyResolver;
+import net.bobolabs.config.TraversalMode;
 import net.md_5.bungee.config.YamlConfiguration;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -54,6 +54,25 @@ class ReadTests {
     static void beforeAll() throws IOException {
         String file = "test_config.yml";
         File configFile = directory.resolve(file).toFile();
+
+        /*
+            config.get<type>("existing.key")            | when correct type     -> OK (returns value)
+            config.get<type>("existing.key")            | when incorrect type   -> ConfigurationException (o qualunque cosa che esprime correttamente il wrong type)
+            config.get<type>("non.existing.key")        | unconditional         -> NullPointer
+            config.get<type>("non.existing.key", def)   | unconditional         -> OK (returns def)
+         */
+
+        for (Object s : config.getList("a")) {
+            String str = s != null ? str = s.toString() : null;
+        }
+
+        String itemDisplayName = Objects.requireNonNull(config.getString(""));
+
+        for (String s : config.getStringList("a")) {
+            if (s != null) {
+
+            }
+        }
 
         config = ConfigurationBuilder
                 .fromFile(configFile)
@@ -104,24 +123,25 @@ class ReadTests {
     }
 
     @Test
-    void getSection() { // TODO
+    void getSections() {
         // ours
-        assertNotNull(config.getSection("section"));
-        assertNull(config.getSection("non.existing.key"));
+        assertNotNull(config.getOptionalSection("section"));
+        assertNull(config.getOptionalSection("non.existing.key"));
 
-        ConfigurationSection section1 = Objects.requireNonNull(config.getSection("section"));
-        ConfigurationSection subSection2 = Objects.requireNonNull(section1.getSection("s2"));
-        assertEquals(Set.of("s1.s1_s1.path1", "s1.s1_s1.path2", "s2.path3", "s2.path4"), section1.getKeys(KeyResolver.LEAVES));
-        assertEquals(Set.of("path3", "path4"), subSection2.getKeys(KeyResolver.LEAVES));
+        ConfigurationSection section1 = config.getSection("section");
+        ConfigurationSection subSection2 = section1.getSection("s2");
+        assertEquals(Set.of("s1.s1_s1.path1", "s1.s1_s1.path2", "s2.path3", "s2.path4"), section1.getKeys(TraversalMode.LEAVES));
+        assertEquals(Set.of("path3", "path4"), subSection2.getKeys(TraversalMode.LEAVES));
+
         ClassCastException e = assertThrows(ClassCastException.class, () -> subSection2.getSection("path3"));
         assertThat(e).hasMessageThat().contains("class java.lang.Integer cannot be cast to class " + ConfigurationSection.class.getCanonicalName());
-        assertNull(subSection2.getSection("path5"));
+        assertNull(subSection2.getOptionalSection("path5"));
 
         // behaves like md_5 -- NO, we do not silently create the section.
     }
 
     @Test
-    void getSectionWithDefault() {
+    void getSectionsWithDefault() {
         ConfigurationSection def = config.getSection("section.s2");
         ConfigurationSection section = config.getSection("non.existing.key", def);
         assertSame(def, section);

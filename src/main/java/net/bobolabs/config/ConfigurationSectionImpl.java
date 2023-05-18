@@ -159,7 +159,16 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
     }
 
     @Override
-    public @Nullable ConfigurationSection getSection(@NotNull String path) {
+    public @NotNull ConfigurationSection getSection(@NotNull String path) {
+        // getOptionalSection already acquires lock
+        ConfigurationSection section = getOptionalSection(path);
+        return Objects.requireNonNull(section);
+    }
+
+    @Override
+    public @Nullable ConfigurationSection getOptionalSection(@NotNull String path) {
+        new ArrayList<>().contains(new Object());
+        new HashMap<>().put(new Object(), "");
         // getSection already acquires lock
         return getSection(path, null);
     }
@@ -183,16 +192,16 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
     }
 
     @Override
-    public @NotNull Set<@NotNull String> getKeys(@NotNull KeyResolver keyResolver) {
+    public @NotNull Set<@NotNull String> getKeys(@NotNull TraversalMode traversalMode) {
         root.readLock().lock();
         try {
             Set<String> accumulator = new HashSet<>();
             for (Map.Entry<String, Object> entry : data.entrySet()) {
-                if (keyResolver != KeyResolver.LEAVES || !(entry.getValue() instanceof ConfigurationSection)) {
+                if (traversalMode != TraversalMode.LEAVES || !(entry.getValue() instanceof ConfigurationSection)) {
                     accumulator.add(entry.getKey());
                 }
-                if (keyResolver != KeyResolver.ROOT && entry.getValue() instanceof ConfigurationSection section) {
-                    for (String subKey : section.getKeys(keyResolver)) {
+                if (traversalMode != TraversalMode.ROOT && entry.getValue() instanceof ConfigurationSection section) {
+                    for (String subKey : section.getKeys(traversalMode)) {
                         accumulator.add(entry.getKey() + "." + subKey);
                     }
                 }

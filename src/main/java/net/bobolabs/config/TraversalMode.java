@@ -22,7 +22,7 @@
 
 package net.bobolabs.config;
 
-public enum KeyResolver {
+public enum TraversalMode {
 
     ROOT,
     BRANCHES,

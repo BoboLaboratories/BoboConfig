@@ -24,7 +24,7 @@ package net.bobolabs.config.tests;
 
 import net.bobolabs.config.Configuration;
 import net.bobolabs.config.ConfigurationBuilder;
-import net.bobolabs.config.KeyResolver;
+import net.bobolabs.config.TraversalMode;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -56,9 +56,9 @@ class KeysTests {
 
     @Test
     void test() {
-        assertEquals(Set.of("a", "g", "i"), config.getKeys(KeyResolver.ROOT));
-        assertEquals(Set.of("a", "a.b", "a.b.c", "a.b.d", "a.e", "a.e.f", "g", "g.h", "i"), config.getKeys(KeyResolver.BRANCHES));
-        assertEquals(Set.of("a.b.c", "a.b.d", "a.e.f", "g.h", "i"), config.getKeys(KeyResolver.LEAVES));
+        assertEquals(Set.of("a", "g", "i"), config.getKeys(TraversalMode.ROOT));
+        assertEquals(Set.of("a", "a.b", "a.b.c", "a.b.d", "a.e", "a.e.f", "g", "g.h", "i"), config.getKeys(TraversalMode.BRANCHES));
+        assertEquals(Set.of("a.b.c", "a.b.d", "a.e.f", "g.h", "i"), config.getKeys(TraversalMode.LEAVES));
     }
 
     // TODO test on subSection
