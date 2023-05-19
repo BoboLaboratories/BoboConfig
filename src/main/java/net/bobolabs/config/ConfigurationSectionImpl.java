@@ -29,6 +29,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.IntUnaryOperator;
+import java.util.function.UnaryOperator;
 
 final class ConfigurationSectionImpl implements ConfigurationSection {
 
@@ -45,7 +47,7 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
             root.writeLock().lock();
             try {
                 for (Map.Entry<?, ?> entry : ext.entrySet()) {
-                    String key = entry.getKey().toString();
+                    String key = Objects.toString(entry.getKey());
                     if (entry.getValue() instanceof Map<?, ?> sectionData) {
                         data.put(key, new ConfigurationSectionImpl(root, sectionData));
                     } else {
@@ -272,122 +274,124 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
                 V converted = converter.apply(value);
                 list.add(converted);
             } else {
+                System.out.println(obj);
                 throw new ClassCastException(obj.getClass() + " could not be cast to " + exactType);
             }
         }
         return list;
     }
 
+
     @Override
     public byte getByte(@NotNull String path) {
-        return getType(path, Number.class, Byte.class, Number::byteValue, true);
+        return getType(path, Integer.class, Byte.class, TypeConverters.BYTE, true);
     }
 
     @Override
     public byte getByte(@NotNull String path, byte def) {
-        Byte ret = getType(path, Number.class, Byte.class, Number::byteValue, false);
+        Byte ret = getType(path, Integer.class, Byte.class, TypeConverters.BYTE, false);
         return ret != null ? ret : def;
     }
 
     @Override
     public @NotNull List<@NotNull Byte> getByteList(@NotNull String path) {
-        return getTypeList(path, Number.class, Byte.class, Number::byteValue);
+        return getTypeList(path, Integer.class, Byte.class, TypeConverters.BYTE);
     }
 
     @Override
     public short getShort(@NotNull String path) {
-        return getType(path, Number.class, Short.class, Number::shortValue, true);
+        return getType(path, Integer.class, Short.class, TypeConverters.SHORT, true);
     }
 
     @Override
     public short getShort(@NotNull String path, short def) {
-        Short ret = getType(path, Number.class, Short.class, Number::shortValue, false);
+        Short ret = getType(path, Integer.class, Short.class, TypeConverters.SHORT, false);
         return ret != null ? ret : def;
     }
 
     @Override
     public @NotNull List<@NotNull Short> getShortList(@NotNull String path) {
-        return getTypeList(path, Number.class, Short.class, Number::shortValue);
+        return getTypeList(path, Integer.class, Short.class, TypeConverters.SHORT);
     }
 
     @Override
     public int getInt(@NotNull String path) {
-        return getType(path, Number.class, Integer.class, Number::intValue, true);
+        return getType(path, Integer.class, Integer.class, TypeConverters.INTEGER, true);
     }
 
     @Override
     public int getInt(@NotNull String path, int def) {
-        Integer ret = getType(path, Number.class, Integer.class, Number::intValue, false);
+        Integer ret = getType(path, Integer.class, Integer.class, TypeConverters.INTEGER, false);
         return ret != null ? ret : def;
     }
 
     @Override
     public @NotNull List<@NotNull Integer> getIntList(@NotNull String path) {
-        return getTypeList(path, Number.class, Integer.class, Number::intValue);
+        return getTypeList(path, Integer.class, Integer.class, TypeConverters.INTEGER);
     }
 
     @Override
     public long getLong(@NotNull String path) {
-        return getType(path, Number.class, Long.class, Number::longValue, true);
+        return getType(path, Object.class, Long.class, TypeConverters.LONG, true);
     }
 
     @Override
     public long getLong(@NotNull String path, long def) {
-        Long ret = getType(path, Number.class, Long.class, Number::longValue, false);
+        Long ret = getType(path, Object.class, Long.class, TypeConverters.LONG, false);
         return ret != null ? ret : def;
     }
 
     @Override
     public @NotNull List<@NotNull Long> getLongList(@NotNull String path) {
-        return getTypeList(path, Number.class, Long.class, Number::longValue);
+        return getTypeList(path, Object.class, Long.class, TypeConverters.LONG);
     }
 
     @Override
     public float getFloat(@NotNull String path) {
-        return getType(path, Number.class, Float.class, Number::floatValue, true);
+        return getType(path, Number.class, Float.class, TypeConverters.FLOAT, true);
     }
 
     @Override
     public float getFloat(@NotNull String path, float def) {
-        Float ret = getType(path, Number.class, Float.class, Number::floatValue, false);
+        Float ret = getType(path, Number.class, Float.class, TypeConverters.FLOAT, false);
         return ret != null ? ret : def;
     }
 
     @Override
     public @NotNull List<@NotNull Float> getFloatList(@NotNull String path) {
-        return getTypeList(path, Number.class, Float.class, Number::floatValue);
+        return getTypeList(path, Number.class, Float.class, TypeConverters.FLOAT);
     }
 
     @Override
     public double getDouble(@NotNull String path) {
-        return getType(path, Number.class, Double.class, Number::doubleValue, true);
+        return getType(path, Number.class, Double.class, TypeConverters.DOUBLE, true);
     }
 
     @Override
     public double getDouble(@NotNull String path, double def) {
-        Double ret = getType(path, Number.class, Double.class, Number::doubleValue, false);
+        Double ret = getType(path, Number.class, Double.class, TypeConverters.DOUBLE, false);
         return ret != null ? ret : def;
     }
 
     @Override
     public @NotNull List<@NotNull Double> getDoubleList(@NotNull String path) {
-        return getTypeList(path, Number.class, Double.class, Number::doubleValue);
+        return getTypeList(path, Number.class, Double.class, TypeConverters.DOUBLE);
     }
 
     @Override
     public boolean getBoolean(@NotNull String path) {
-        return getType(path, Boolean.class, Boolean.class, b -> b, true);
+        return getType(path, Boolean.class, Boolean.class, TypeConverters.BOOLEAN, true);
     }
 
     @Override
     public boolean getBoolean(@NotNull String path, boolean def) {
-        Boolean ret = getType(path, Boolean.class, Boolean.class, b -> b, false);
+        Boolean ret = getType(path, Boolean.class, Boolean.class, TypeConverters.BOOLEAN, false);
         return ret != null ? ret : def;
     }
 
     @Override
     public @NotNull List<@NotNull Boolean> getBooleanList(@NotNull String path) {
-        return getTypeList(path, Boolean.class, Boolean.class, b -> b);
+        return getTypeList(path, Boolean.class, Boolean.class, TypeConverters.BOOLEAN);
     }
 
     @Override

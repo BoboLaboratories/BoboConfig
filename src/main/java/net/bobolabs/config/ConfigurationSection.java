@@ -246,7 +246,8 @@ public interface ConfigurationSection {
      * @param path  the path whose associated byte value is to be returned.
      * @return      the byte value associated to the specified path, or the
      *              specified default value if no mapping is present.
-     * @throws      TODO exception if it is not of the correct type
+     * @throws      ClassCastException if the value associated to the given path
+     *                                 could not be converted to byte.
      * @since       2.0.0
      */
     byte getByte(@NotNull String path, byte def);
@@ -259,6 +260,7 @@ public interface ConfigurationSection {
      * @param path  the path whose associated byte values are to be returned.
      * @return      a new list which contains all the byte values mapped to
      *              {@code path}, or a new empty list if no mapping is present.
+     * TODO same throws as getByte(String)
      * @since       2.0.0
      */
     @NotNull

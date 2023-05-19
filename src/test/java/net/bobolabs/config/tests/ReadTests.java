@@ -139,122 +139,275 @@ class ReadTests {
 
     @Test
     void getByte() {
-        assertEquals((byte) 1, config.getByte("values.byte"));
-        assertThrows(ClassCastException.class, () -> config.getByte("values.string"));
+        // returns actual value if mapping is present
+        assertEquals(Byte.MIN_VALUE, config.getByte("bytes.values.ok"));
+
+        // throws if no mapping is present
         assertThrows(NullPointerException.class, () -> config.getByte("non.existing.key"));
+
+        // throws if mapping is present but cannot be represented as byte
+        assertThrows(ClassCastException.class, () -> config.getByte("bytes.values.cast"));
+    }
+
+    @Test
+    void getByteDefault() {
+        // returns actual value if mapping is present
+        assertEquals(Byte.MIN_VALUE, config.getByte("bytes.values.ok", (byte) 1));
+
+        // returns default value if no mapping is present
         assertEquals((byte) -1, config.getByte("non.existing.key", (byte) -1));
+
+        // throws if mapping is present but cannot be represented as byte
+        assertThrows(ClassCastException.class, () -> config.getByte("bytes.values.cast", (byte) 1));
     }
 
     @Test
     void getByteList() {
-        assertEquals(List.of((byte) 0, Byte.MIN_VALUE, Byte.MAX_VALUE), config.getByteList("lists.bytes.ok"));
-        assertThrows(NullPointerException.class, () -> config.getByteList("lists.bytes.null-pointer"));
-        assertThrows(ClassCastException.class, () -> config.getByteList("lists.bytes.class-cast"));
+        // returns actual value if mapping is present
+        assertEquals(List.of((byte) 0, Byte.MIN_VALUE, Byte.MAX_VALUE), config.getByteList("bytes.lists.ok"));
+
+        // throws if no mapping is present
+        assertThrows(NullPointerException.class, () -> config.getByteList("non.existing.key"));
+
+        // throws if any of the mapped values is null
+        assertThrows(NullPointerException.class, () -> config.getByteList("bytes.lists.null"));
+
+        // throws if mapping is present but contains any value that cannot be represented as byte
+        assertThrows(ClassCastException.class, () -> config.getByteList("bytes.lists.cast1"));
+        assertThrows(ClassCastException.class, () -> config.getByteList("bytes.lists.cast2"));
     }
 
     @Test
     void getShort() {
-        assertEquals((short) 2, config.getShort("values.short"));
-        assertThrows(ClassCastException.class, () -> config.getByte("values.string"));
-        assertThrows(NullPointerException.class, () -> config.getByte("non.existing.key"));
+        // returns actual value if mapping is present
+        assertEquals(Short.MIN_VALUE, config.getShort("shorts.values.ok"));
+
+        // throws if no mapping is present
+        assertThrows(NullPointerException.class, () -> config.getShort("non.existing.key"));
+
+        // throws if mapping is present but cannot be represented as short
+        assertThrows(ClassCastException.class, () -> config.getShort("shorts.values.cast"));
+    }
+
+    @Test
+    void getShortDefault() {
+        // returns actual value if mapping is present
+        assertEquals(Short.MIN_VALUE, config.getShort("shorts.values.ok", (short) 1));
+
+        // returns default value if no mapping is present
         assertEquals((short) -1, config.getShort("non.existing.key", (short) -1));
+
+        // throws if mapping is present but cannot be represented as short
+        assertThrows(ClassCastException.class, () -> config.getShort("shorts.values.cast", (short) 1));
     }
 
     @Test
     void getShortList() {
-        assertEquals(List.of((short) 0, Short.MIN_VALUE, Short.MAX_VALUE), config.getShortList("lists.shorts"));
+        // returns actual value if mapping is present
+        assertEquals(List.of((short) 0, Short.MIN_VALUE, Short.MAX_VALUE), config.getShortList("shorts.lists.ok"));
+
+        // throws if no mapping is present
+        assertThrows(NullPointerException.class, () -> config.getShortList("non.existing.key"));
+
+        // throws if any of the mapped values is null
+        assertThrows(NullPointerException.class, () -> config.getShortList("shorts.lists.null"));
+
+        // throws if mapping is present but contains any value that cannot be represented as short
+        assertThrows(ClassCastException.class, () -> config.getShortList("shorts.lists.cast1"));
+        assertThrows(ClassCastException.class, () -> config.getShortList("shorts.lists.cast2"));
     }
 
     @Test
     void getInt() {
-        // ours
-        assertEquals(3, config.getInt("values.int"));
-        assertEquals(0, config.getInt("non.existing.key"));
+        // returns actual value if mapping is present
+        assertEquals(Integer.MIN_VALUE, config.getInt("ints.values.ok"));
+
+        // throws if no mapping is present
+        assertThrows(NullPointerException.class, () -> config.getInt("non.existing.key"));
+
+        // throws if mapping is present but cannot be represented as int
+        assertThrows(ClassCastException.class, () -> config.getInt("ints.values.cast"));
+    }
+
+    @Test
+    void getIntDefault() {
+        // returns actual value if mapping is present
+        assertEquals(Integer.MIN_VALUE, config.getInt("ints.values.ok", 1));
+
+        // returns default value if no mapping is present
         assertEquals(-1, config.getInt("non.existing.key", -1));
 
-        // behaves like md_5
-        assertEquals(md5.getInt("values.int"), config.getInt("values.int"));
-        assertEquals(md5.getInt("non.existing.key"), config.getInt("non.existing.key"));
-        assertEquals(md5.getInt("non.existing.key", -1), config.getInt("non.existing.key", -1));
+        // throws if mapping is present but cannot be represented as int
+        assertThrows(ClassCastException.class, () -> config.getInt("ints.values.cast", 1));
     }
 
     @Test
     void getIntList() {
-        assertEquals(List.of(0, Integer.MIN_VALUE, Integer.MAX_VALUE), config.getIntList("lists.ints"));
+        // returns actual value if mapping is present
+        assertEquals(List.of(0, Integer.MIN_VALUE, Integer.MAX_VALUE), config.getIntList("ints.lists.ok"));
+
+        // throws if no mapping is present
+        assertThrows(NullPointerException.class, () -> config.getIntList("non.existing.key"));
+
+        // throws if any of the mapped values is null
+        assertThrows(NullPointerException.class, () -> config.getIntList("ints.lists.null"));
+
+        // throws if mapping is present but contains any value that cannot be represented as int
+        assertThrows(ClassCastException.class, () -> config.getIntList("ints.lists.cast1"));
+        assertThrows(ClassCastException.class, () -> config.getIntList("ints.lists.cast2"));
     }
 
     @Test
     void getLong() {
-        // ours
-        assertEquals(4L, config.getLong("values.long"));
-        assertEquals(0L, config.getLong("non.existing.key"));
+        // returns actual value if mapping is present
+        assertEquals(-1L, config.getLong("longs.values.ok1"));
+        assertEquals(Long.MIN_VALUE, config.getLong("longs.values.ok2"));
+
+        // throws if no mapping is present
+        assertThrows(NullPointerException.class, () -> config.getLong("non.existing.key"));
+
+        // throws if mapping is present but cannot be represented as long
+        assertThrows(ClassCastException.class, () -> config.getLong("longs.values.cast"));
+    }
+
+    @Test
+    void getLongDefault() {
+        // returns actual value if mapping is present
+        assertEquals(-1L, config.getLong("longs.values.ok1", 1L));
+        assertEquals(Long.MIN_VALUE, config.getLong("longs.values.ok2", 1L));
+
+        // returns default value if no mapping is present
         assertEquals(-1L, config.getLong("non.existing.key", -1L));
 
-        // behaves like md_5
-        assertEquals(md5.getLong("values.long"), config.getLong("values.long"));
-        assertEquals(md5.getLong("non.existing.key"), config.getLong("non.existing.key"));
-        assertEquals(md5.getLong("non.existing.key", -1L), config.getLong("non.existing.key", -1L));
+        // throws if mapping is present but cannot be represented as long
+        assertThrows(ClassCastException.class, () -> config.getLong("longs.values.cast", 1L));
     }
 
     @Test
     void getLongList() {
-        assertEquals(List.of(0L, Long.MIN_VALUE, Long.MAX_VALUE), config.getLongList("lists.longs"));
+        // returns actual value if mapping is present
+        assertEquals(List.of(0L, Long.MIN_VALUE, Long.MAX_VALUE), config.getLongList("longs.lists.ok"));
+
+        // throws if no mapping is present
+        assertThrows(NullPointerException.class, () -> config.getLongList("non.existing.key"));
+
+        // throws if any of the mapped values is null
+        assertThrows(NullPointerException.class, () -> config.getLongList("longs.lists.null"));
+
+        // throws if mapping is present but contains any value that cannot be represented as long
+        assertThrows(ClassCastException.class, () -> config.getLongList("longs.lists.cast1"));
+        assertThrows(ClassCastException.class, () -> config.getLongList("longs.lists.cast2"));
     }
 
     @Test
     void getFloat() {
-        // ours
-        assertEquals(5.1f, config.getFloat("values.float"));
-        assertEquals(0f, config.getFloat("non.existing.key"));
+        // returns actual value if mapping is present
+        assertEquals(Float.MAX_VALUE, config.getFloat("floats.values.ok1"));
+        assertEquals(-Float.MAX_VALUE, config.getFloat("floats.values.ok2"));
+
+        // throws if no mapping is present
+        assertThrows(NullPointerException.class, () -> config.getFloat("non.existing.key"));
+
+        // throws if mapping is present but cannot be represented as float
+        assertThrows(ClassCastException.class, () -> config.getFloat("floats.values.cast"));
+    }
+
+    @Test
+    void getFloatDefault() {
+        // returns actual value if mapping is present
+        assertEquals(Float.MAX_VALUE, config.getFloat("floats.values.ok1", -1f));
+        assertEquals(-Float.MAX_VALUE, config.getFloat("floats.values.ok2", -1f));
+
+        // returns default value if no mapping is present
         assertEquals(-1f, config.getFloat("non.existing.key", -1f));
 
-        // behaves like md_5
-        assertEquals(md5.getFloat("values.float"), config.getFloat("values.float"));
-        assertEquals(md5.getFloat("non.existing.key"), config.getFloat("non.existing.key"));
-        assertEquals(md5.getFloat("non.existing.key", -1f), config.getFloat("non.existing.key", -1f));
+        // throws if mapping is present but cannot be represented as float
+        assertThrows(ClassCastException.class, () -> config.getFloat("floats.values.cast", 1f));
     }
 
     @Test
     void getFloatList() {
-        assertEquals(List.of(0f, Float.MIN_VALUE, Float.MAX_VALUE), config.getFloatList("lists.floats"));
+        // returns actual value if mapping is present
+        assertEquals(List.of(0f, -Float.MAX_VALUE, Float.MAX_VALUE), config.getFloatList("floats.lists.ok"));
+
+        // throws if no mapping is present
+        assertThrows(NullPointerException.class, () -> config.getFloatList("non.existing.key"));
+
+        // throws if any of the mapped values is null
+        assertThrows(NullPointerException.class, () -> config.getFloatList("floats.lists.null"));
+
+        // throws if mapping is present but contains any value that cannot be represented as float
+        assertThrows(ClassCastException.class, () -> config.getFloatList("floats.lists.cast1"));
+        assertThrows(ClassCastException.class, () -> config.getFloatList("floats.lists.cast2"));
     }
 
     @Test
     void getDouble() {
-        // ours
-        assertEquals(6.2D, config.getDouble("values.double"));
-        assertEquals(0D, config.getDouble("non.existing.key"));
+        // returns actual value if mapping is present
+        assertEquals(Double.MAX_VALUE, config.getDouble("doubles.values.ok1"));
+        assertEquals(-Double.MAX_VALUE, config.getDouble("doubles.values.ok2"));
+
+        // throws if no mapping is present
+        assertThrows(NullPointerException.class, () -> config.getDouble("non.existing.key"));
+
+        // throws if mapping is present but cannot be represented as double
+        assertThrows(ClassCastException.class, () -> config.getDouble("doubles.values.cast"));
+    }
+
+    @Test
+    void getDoubleDefault() {
+        // returns actual value if mapping is present
+        assertEquals(Double.MAX_VALUE, config.getDouble("doubles.values.ok1", -1D));
+        assertEquals(-Double.MAX_VALUE, config.getDouble("doubles.values.ok2", -1D));
+
+        // returns default value if no mapping is present
         assertEquals(-1D, config.getDouble("non.existing.key", -1D));
 
-        // behaves like md_5
-        assertEquals(md5.getDouble("values.double"), config.getDouble("values.double"));
-        assertEquals(md5.getDouble("non.existing.key"), config.getDouble("non.existing.key"));
-        assertEquals(md5.getDouble("non.existing.key", -1D), config.getDouble("non.existing.key", -1D));
+        // throws if mapping is present but cannot be represented as double
+        assertThrows(ClassCastException.class, () -> config.getDouble("doubles.values.cast", 1D));
     }
 
     @Test
     void getDoubleList() {
-        assertEquals(List.of(0D, Double.MIN_VALUE, Double.MAX_VALUE), config.getDoubleList("lists.doubles"));
+        // returns actual value if mapping is present
+        assertEquals(List.of(0D, -Double.MAX_VALUE, Double.MAX_VALUE), config.getDoubleList("doubles.lists.ok"));
+
+        // throws if no mapping is present
+        assertThrows(NullPointerException.class, () -> config.getDoubleList("non.existing.key"));
+
+        // throws if any of the mapped values is null
+        assertThrows(NullPointerException.class, () -> config.getDoubleList("doubles.lists.null"));
+
+        // throws if mapping is present but contains any value that cannot be represented as double
+        assertThrows(ClassCastException.class, () -> config.getDoubleList("doubles.lists.cast"));
     }
 
     @Test
     void getBoolean() {
-        // ours
-        assertTrue(config.getBoolean("values.boolean"));
-        assertFalse(config.getBoolean("non.existing.key"));
-        assertTrue(config.getBoolean("non.existing.key", true));
+        // returns actual value if mapping is present
+        assertTrue(config.getBoolean("booleans.values.ok1"));
+        assertFalse(config.getBoolean("booleans.values.ok2"));
 
-        // behaves like md_5
-        assertEquals(md5.getBoolean("values.boolean"), config.getBoolean("values.boolean"));
-        assertEquals(md5.getBoolean("non.existing.key"), config.getBoolean("non.existing.key"));
-        assertEquals(md5.getBoolean("non.existing.key", true), config.getBoolean("non.existing.key", true));
+        // throws if no mapping is present
+        assertThrows(NullPointerException.class, () -> config.getBoolean("non.existing.key"));
+
+        // throws if mapping is present but cannot be represented as boolean
+        assertThrows(ClassCastException.class, () -> config.getBoolean("booleans.values.cast"));
     }
 
     @Test
     void getBooleanList() {
-        assertEquals(List.of(true, false), config.getBooleanList("lists.booleans.1"));
-        assertEquals(List.of(true, false), config.getBooleanList("lists.booleans.2"));
-        assertEquals(Collections.emptyList(), config.getBooleanList("lists.booleans.3"));
+        // returns actual value if mapping is present
+        assertEquals(List.of(true, true, true, true, true, true, true, true, true, true, true), config.getBooleanList("booleans.lists.true"));
+
+        // throws if no mapping is present
+        assertThrows(NullPointerException.class, () -> config.getBooleanList("non.existing.key"));
+
+        // throws if any of the mapped values is null
+        assertThrows(NullPointerException.class, () -> config.getBooleanList("doubles.lists.null"));
+
+        // throws if mapping is present but contains any value that cannot be represented as boolean
+        // assertThrows(ClassCastException.class, () -> config.getBooleanList("doubles.lists.cast"));
     }
 
     @Test
