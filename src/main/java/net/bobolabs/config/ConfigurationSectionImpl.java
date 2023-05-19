@@ -23,10 +23,12 @@
 package net.bobolabs.config;
 
 import net.bobolabs.core.Check;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Function;
 
 final class ConfigurationSectionImpl implements ConfigurationSection {
 
@@ -55,6 +57,13 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
             }
         }
     }
+
+    //region get<Type>
+    //--------------------------------------------------------------------------------------------------
+
+
+    //--------------------------------------------------------------------------------------------------
+    //endregion
 
     @Override
     public boolean contains(@NotNull String path) {
@@ -230,241 +239,183 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
         }
     }
 
+    @Contract("_, _,_, _, true -> !null")
+    private <T, V> V getType(@NotNull String path,
+                             @NotNull Class<T> superType,
+                             @NotNull Class<V> exactType,
+                             @NotNull Function<T, V> converter,
+                             boolean throwIfNull) {
+        // lock not needed as this method is supposed to be used
+        // on unmodifiable types and get already acquires lock
+        Object ret = get(path, null);
+        if (superType.isInstance(ret)) {
+            T value = superType.cast(ret);
+            return converter.apply(value);
+        } else if (ret == null && throwIfNull) {
+            throw new NullPointerException("no mapping found for path `" + path + "` in configuration section");
+        } else if (ret != null) {
+            throw new ClassCastException(ret.getClass() + " could not be cast to " + exactType);
+        }
+        return null;
+    }
+
+    @Contract("_, _, _, _ -> new")
+    private <T, V> @NotNull List<@NotNull V> getTypeList(@NotNull String path,
+                                                         @NotNull Class<T> superType,
+                                                         @NotNull Class<V> exactType,
+                                                         @NotNull Function<T, V> converter) {
+        List<V> list = new ArrayList<>();
+        for (Object obj : getList(path)) {
+            Objects.requireNonNull(obj);
+            if (superType.isInstance(obj)) {
+                T value = superType.cast(obj);
+                V converted = converter.apply(value);
+                list.add(converted);
+            } else {
+                throw new ClassCastException(obj.getClass() + " could not be cast to " + exactType);
+            }
+        }
+        return list;
+    }
+
     @Override
     public byte getByte(@NotNull String path) {
-        // lock not needed as Number is unmodifiable
-        Object ret = get(path);
-        if (ret instanceof Number n) {
-            return n.byteValue();
-        }
-        throw new ClassCastException(ret.getClass() + " could not be cast to byte");
+        return getType(path, Number.class, Byte.class, Number::byteValue, true);
     }
 
     @Override
     public byte getByte(@NotNull String path, byte def) {
-        // lock not needed as Number is unmodifiable
-        Object ret = get(path, null);
-        if (ret == null) {
-            return def;
-        } else if (ret instanceof Number n) {
-            return n.byteValue();
-        }
-        throw new ClassCastException(ret.getClass() + " could not be cast to byte");
+        Byte ret = getType(path, Number.class, Byte.class, Number::byteValue, false);
+        return ret != null ? ret : def;
     }
 
     @Override
     public @NotNull List<@NotNull Byte> getByteList(@NotNull String path) {
-        // lock not needed as getList already returns a new collection
-        return getList(path).stream()
-                .filter(Number.class::isInstance)
-                .map(elem -> ((Number) elem).byteValue())
-                .toList();
+        return getTypeList(path, Number.class, Byte.class, Number::byteValue);
     }
 
     @Override
     public short getShort(@NotNull String path) {
-        // lock not needed as Number is unmodifiable
-        Object ret = get(path);
-        if (ret instanceof Number n) {
-            return n.shortValue();
-        }
-        throw new ClassCastException(ret.getClass() + " could not be cast to short");
+        return getType(path, Number.class, Short.class, Number::shortValue, true);
     }
 
     @Override
     public short getShort(@NotNull String path, short def) {
-        // lock not needed as Number is unmodifiable
-        Object ret = get(path, null);
-        if (ret == null) {
-            return def;
-        } else if (ret instanceof Number n) {
-            return n.shortValue();
-        }
-        throw new ClassCastException(ret.getClass() + " could not be cast to short");
+        Short ret = getType(path, Number.class, Short.class, Number::shortValue, false);
+        return ret != null ? ret : def;
     }
 
     @Override
     public @NotNull List<@NotNull Short> getShortList(@NotNull String path) {
-        // lock not needed as getList already returns a new collection
-        return getList(path).stream()
-                .filter(Number.class::isInstance)
-                .map(elem -> ((Number) elem).shortValue())
-                .toList();
+        return getTypeList(path, Number.class, Short.class, Number::shortValue);
     }
 
     @Override
     public int getInt(@NotNull String path) {
-        // lock not needed as Number is unmodifiable
-        Object ret = get(path);
-        if (ret instanceof Number n) {
-            return n.intValue();
-        }
-        throw new ClassCastException(ret.getClass() + " could not be cast to integer");
+        return getType(path, Number.class, Integer.class, Number::intValue, true);
     }
 
     @Override
     public int getInt(@NotNull String path, int def) {
-        // lock not needed as Number is unmodifiable
-        Object ret = get(path, null);
-        if (ret == null) {
-            return def;
-        } else if (ret instanceof Number n) {
-            return n.intValue();
-        }
-        throw new ClassCastException(ret.getClass() + " could not be cast to integer");
+        Integer ret = getType(path, Number.class, Integer.class, Number::intValue, false);
+        return ret != null ? ret : def;
     }
 
     @Override
     public @NotNull List<@NotNull Integer> getIntList(@NotNull String path) {
-        // lock not needed as getList already returns a new collection
-        return getList(path).stream()
-                .filter(Number.class::isInstance)
-                .map(elem -> ((Number) elem).intValue())
-                .toList();
+        return getTypeList(path, Number.class, Integer.class, Number::intValue);
     }
 
     @Override
     public long getLong(@NotNull String path) {
-        // lock not needed as Number is unmodifiable
-        Object ret = get(path);
-        if (ret instanceof Number n) {
-            return n.longValue();
-        }
-        throw new ClassCastException(ret.getClass() + " could not be cast to long");
+        return getType(path, Number.class, Long.class, Number::longValue, true);
     }
 
     @Override
     public long getLong(@NotNull String path, long def) {
-        // lock not needed as Number is unmodifiable
-        Object ret = get(path, null);
-        if (ret == null) {
-            return def;
-        } else if (ret instanceof Number n) {
-            return n.longValue();
-        }
-        throw new ClassCastException(ret.getClass() + " could not be cast to long");
+        Long ret = getType(path, Number.class, Long.class, Number::longValue, false);
+        return ret != null ? ret : def;
     }
 
     @Override
     public @NotNull List<@NotNull Long> getLongList(@NotNull String path) {
-        // lock not needed as getList already returns a new collection
-        return getList(path).stream()
-                .filter(Number.class::isInstance)
-                .map(elem -> ((Number) elem).longValue())
-                .toList();
+        return getTypeList(path, Number.class, Long.class, Number::longValue);
     }
 
     @Override
     public float getFloat(@NotNull String path) {
-        // lock not needed as Number is unmodifiable
-        Object ret = get(path);
-        if (ret instanceof Number n) {
-            return n.floatValue();
-        }
-        throw new ClassCastException(ret.getClass() + " could not be cast to float");
+        return getType(path, Number.class, Float.class, Number::floatValue, true);
     }
 
     @Override
     public float getFloat(@NotNull String path, float def) {
-        // lock not needed as Number is unmodifiable
-        Object ret = get(path, null);
-        if (ret == null) {
-            return def;
-        } else if (ret instanceof Number n) {
-            return n.floatValue();
-        }
-        throw new ClassCastException(ret.getClass() + " could not be cast to float");
+        Float ret = getType(path, Number.class, Float.class, Number::floatValue, false);
+        return ret != null ? ret : def;
     }
 
     @Override
     public @NotNull List<@NotNull Float> getFloatList(@NotNull String path) {
-        // lock not needed as getList already returns a new collection
-        return getList(path).stream()
-                .filter(Number.class::isInstance)
-                .map(elem -> ((Number) elem).floatValue())
-                .toList();
+        return getTypeList(path, Number.class, Float.class, Number::floatValue);
     }
 
     @Override
     public double getDouble(@NotNull String path) {
-        // lock not needed as Number is unmodifiable
-        Object ret = get(path);
-        if (ret instanceof Number n) {
-            return n.doubleValue();
-        }
-        throw new ClassCastException(ret.getClass() + " could not be cast to double");
+        return getType(path, Number.class, Double.class, Number::doubleValue, true);
     }
 
     @Override
     public double getDouble(@NotNull String path, double def) {
-        // lock not needed as Number is unmodifiable
-        Object ret = get(path, null);
-        if (ret == null) {
-            return def;
-        } else if (ret instanceof Number n) {
-            return n.doubleValue();
-        }
-        throw new ClassCastException(ret.getClass() + " could not be cast to double");
+        Double ret = getType(path, Number.class, Double.class, Number::doubleValue, false);
+        return ret != null ? ret : def;
     }
 
     @Override
     public @NotNull List<@NotNull Double> getDoubleList(@NotNull String path) {
-        // lock not needed as getList already returns a new collection
-        return getList(path).stream()
-                .filter(Number.class::isInstance)
-                .map(elem -> ((Number) elem).doubleValue())
-                .toList();
+        return getTypeList(path, Number.class, Double.class, Number::doubleValue);
     }
 
     @Override
     public boolean getBoolean(@NotNull String path) {
-        return getBoolean(path, false);
+        return getType(path, Boolean.class, Boolean.class, b -> b, true);
     }
 
     @Override
     public boolean getBoolean(@NotNull String path, boolean def) {
-        // lock not needed as Boolean is unmodifiable
-        return (get(path) instanceof Boolean bool) ? bool : def;
+        Boolean ret = getType(path, Boolean.class, Boolean.class, b -> b, false);
+        return ret != null ? ret : def;
     }
 
     @Override
     public @NotNull List<@NotNull Boolean> getBooleanList(@NotNull String path) {
-        // lock not needed as getList already returns a new collection
-        return getList(path).stream()
-                .filter(Boolean.class::isInstance)
-                .map(e -> (Boolean) e)
-                .toList();
+        return getTypeList(path, Boolean.class, Boolean.class, b -> b);
     }
 
     @Override
-    public @Nullable String getString(@NotNull String path) {
-        return getString(path, null);
+    public @NotNull String getString(@NotNull String path) {
+        return getType(path, String.class, String.class, s -> s, true);
     }
 
     @Override
     public @Nullable String getString(@NotNull String path, @Nullable String def) {
-        // lock not needed as String is unmodifiable
-        return (get(path) instanceof String str) ? str : def;
+        String ret = getType(path, String.class, String.class, s -> s, false);
+        return ret != null ? ret : def;
     }
 
     @Override
     public @NotNull List<@NotNull String> getStringList(@NotNull String path) {
-        // lock not needed as getList already returns a new collection
-        return getList(path).stream()
-                .filter(Objects::nonNull)
-                .map(Objects::toString)
-                .toList();
+        return getTypeList(path, String.class, String.class, s -> s);
     }
 
     @Override
-    public <T extends Enum<T>> @Nullable T getEnum(@NotNull String path, @NotNull Class<T> enumClass) {
-        return getEnum(path, enumClass, null);
+    public <T extends Enum<T>> @NotNull T getEnum(@NotNull String path, @NotNull Class<T> enumClass) {
+        T ret = getEnum(path, enumClass, null);
+        return Objects.requireNonNull(ret);
     }
 
     @Override
     public <T extends Enum<T>> @Nullable T getEnum(@NotNull String path, @NotNull Class<T> enumClass, @Nullable T def) {
         // lock not needed as getString already worries about that and String is unmodifiable
-        String str = getString(path);
+        String str = getString(path, null);
         return str != null ? Enum.valueOf(enumClass, str) : def;
     }
 
@@ -473,12 +424,8 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
         // lock not needed as getStringList already worries about that and returns a new collection
         List<T> ret = new ArrayList<>();
         for (String str : getStringList(path)) {
-            try {
-                T entry = Enum.valueOf(enumClass, str);
-                ret.add(entry);
-            } catch (IllegalArgumentException ignored) {
-                // simply filter that out
-            }
+            T entry = Enum.valueOf(enumClass, str);
+            ret.add(entry);
         }
         return ret;
     }

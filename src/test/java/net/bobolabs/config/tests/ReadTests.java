@@ -139,33 +139,25 @@ class ReadTests {
 
     @Test
     void getByte() {
-        // ours
         assertEquals((byte) 1, config.getByte("values.byte"));
-        assertEquals((byte) 0, config.getByte("non.existing.key"));
+        assertThrows(ClassCastException.class, () -> config.getByte("values.string"));
+        assertThrows(NullPointerException.class, () -> config.getByte("non.existing.key"));
         assertEquals((byte) -1, config.getByte("non.existing.key", (byte) -1));
-
-        // behaves like md_5
-        assertEquals(md5.getByte("values.byte"), config.getByte("values.byte"));
-        assertEquals(md5.getByte("non.existing.key"), config.getByte("non.existing.key"));
-        assertEquals(md5.getByte("non.existing.key", (byte) -1), config.getByte("non.existing.key", (byte) -1));
     }
 
     @Test
     void getByteList() {
-        assertEquals(List.of((byte) 0, Byte.MIN_VALUE, Byte.MAX_VALUE), config.getByteList("lists.bytes"));
+        assertEquals(List.of((byte) 0, Byte.MIN_VALUE, Byte.MAX_VALUE), config.getByteList("lists.bytes.ok"));
+        assertThrows(NullPointerException.class, () -> config.getByteList("lists.bytes.null-pointer"));
+        assertThrows(ClassCastException.class, () -> config.getByteList("lists.bytes.class-cast"));
     }
 
     @Test
     void getShort() {
-        // ours
         assertEquals((short) 2, config.getShort("values.short"));
-        assertEquals((short) 0, config.getShort("non.existing.key"));
+        assertThrows(ClassCastException.class, () -> config.getByte("values.string"));
+        assertThrows(NullPointerException.class, () -> config.getByte("non.existing.key"));
         assertEquals((short) -1, config.getShort("non.existing.key", (short) -1));
-
-        // behaves like md_5
-        assertEquals(md5.getShort("values.short"), config.getShort("values.short"));
-        assertEquals(md5.getShort("non.existing.key"), config.getShort("non.existing.key"));
-        assertEquals(md5.getShort("non.existing.key", (short) -1), config.getShort("non.existing.key", (short) -1));
     }
 
     @Test
