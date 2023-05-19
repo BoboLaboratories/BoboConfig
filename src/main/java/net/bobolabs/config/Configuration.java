@@ -117,11 +117,6 @@ public final class Configuration implements ConfigurationSection {
     }
 
     @Override
-    public @Nullable ConfigurationSection getOptionalSection(@NotNull String path) {
-        return section.getOptionalSection(path);
-    }
-
-    @Override
     public @Nullable ConfigurationSection getSection(@NotNull String path, @Nullable ConfigurationSection def) {
         return section.getSection(path, def);
     }

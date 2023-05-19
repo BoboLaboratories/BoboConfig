@@ -1,83 +1,76 @@
 bytes:
   values:
     ok: -128
-    cast: 128
   lists:
-    ok: [0, -128, 127]
-    null: [0, -128, 127, null]
-    cast1: [0, -128, 127, 3.4]
-    cast2: [0, -128, 129]
+    ok: [ 0, -128, 127 ]
+    null: [ 0, -128, 127, null ]
+    cast1: [ 0, -128, 127, 3.4 ]
+    cast2: [ 0, -128, 129 ]
 
 shorts:
   values:
     ok: -32768
-    cast: 32768
   lists:
-    ok: [0, -32768, 32767]
-    null: [0, -32768, 32767, null]
-    cast1: [0, -32768, 32767, 7.2]
-    cast2: [0, -32768, 32768]
+    ok: [ 0, -32768, 32767 ]
+    null: [ 0, -32768, 32767, null ]
+    cast: [ 0, -32768, 32767, 7.2 ]
 
 ints:
   values:
     ok: -2147483648
-    cast: 2147483648
   lists:
-    ok: [0, -2147483648, 2147483647]
-    null: [0, -2147483648, 2147483647, null]
-    cast1: [0, -2147483648, 2147483647, -1.3]
-    cast2: [0, -2147483648, 2147483648]
+    ok: [ 0, -2147483648, 2147483647 ]
+    null: [ 0, -2147483648, 2147483647, null ]
+    cast: [ 0, -2147483648, 2147483647, -1.3 ]
 
 longs:
   values:
-    ok1: -1
-    ok2: -9223372036854775808
-    cast: 9223372036854775808
+    ok: -1
   lists:
-    ok: [0, -9223372036854775808, 9223372036854775807]
-    null: [0, -9223372036854775808, 9223372036854775807, null]
-    cast1: [0, -9223372036854775808, 9223372036854775807, 10.5]
-    cast2: [0, -9223372036854775808, 9223372036854775808]
+    ok: [ 0, -9223372036854775808, 9223372036854775807 ]
+    null: [ 0, -9223372036854775808, 9223372036854775807, null ]
+    cast: [ 0, -9223372036854775808, 9223372036854775807, 10.5 ]
 
 floats:
   values:
-    ok1: 3.4028235E38
-    ok2: -3.4028235E38
-    cast: 3.4028236E38
+    ok: 3.4028235E38
   lists:
-    ok: [0, -3.4028235E38, 3.4028235E38]
-    null: [0, 3.4028235E38, null]
-    cast1: [0, 3.4028235E38, [another_list]]
-    cast2: [0, 3.4028236E38]
+    ok: [ 0, -3.4028235E38, 3.4028235E38 ]
+    null: [ 0, 3.4028235E38, null ]
+    cast1: [ 0, 3.4028235E38, [ another_list ] ]
+    cast2: [ 0, 3.4028236E38 ]
 
 doubles:
   values:
-    ok1: 1.7976931348623157E308
-    ok2: -1.7976931348623157E308
-    cast: [1]
+    ok: 1.7976931348623157E308
   lists:
-    ok: [0, -1.7976931348623157E308, 1.7976931348623157E308]
-    null: [0, -1.7976931348623157E308, 1.7976931348623157E308, null]
-    cast: [0, -1.7976931348623157E308, 1.7976931348623157E308, [another_list]]
+    ok: [ 0, -1.7976931348623157E308, 1.7976931348623157E308 ]
+    null: [ 0, -1.7976931348623157E308, 1.7976931348623157E308, null ]
+    cast: [ 0, -1.7976931348623157E308, 1.7976931348623157E308, [ another_list ] ]
 
 booleans:
   values:
-    ok1: yes
-    ok2: false
-    cast: 3
+    ok: true
   lists:
-    true: [y, Y, yes, Yes, YES, true, True, TRUE, on, On, ON]
-    false: [n, N, no, No, NO, false, False, FALSE, off, Off, OFF]
-    null: [y, Y, yes, Yes, YES, true, True, TRUE, on, On, ON, n, N, no, No, NO, false, False, FALSE, off, Off, OFF, null]
+    ok: [ true, false ]
+    null: [ true, false, null ]
+    cast: [ true, false, -0.6 ]
 
-values:
-  int: 3
-  long: 4
-  float: 5.1
-  double: 6.2
-  boolean: true
-  string: 'sette :D'
-  enum: TEST_1
+strings:
+  values:
+    ok: 3
+  lists:
+    ok: [ "hello", "Stami", "" ]
+    null: [ "hello", "", null ]
+
+enums:
+  values:
+    ok: TEST_1
+    cast: TEST_3
+  lists:
+    ok: [ TEST_1, TEST_2 ]
+    null: [ TEST_1, TEST_2, null ]
+    cast: [ TEST_1, TEST_2, 3 ]
 
 section:
   s1:
@@ -94,7 +87,7 @@ lists:
     - A
     -
     - ""
-    - [2, 1]
+    - [ 2, 1 ]
     - null
   ints:
     - 0

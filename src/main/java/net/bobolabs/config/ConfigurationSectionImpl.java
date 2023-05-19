@@ -22,15 +22,12 @@
 
 package net.bobolabs.config;
 
-import net.bobolabs.core.Check;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.IntUnaryOperator;
-import java.util.function.UnaryOperator;
 
 final class ConfigurationSectionImpl implements ConfigurationSection {
 
@@ -59,13 +56,6 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
             }
         }
     }
-
-    //region get<Type>
-    //--------------------------------------------------------------------------------------------------
-
-
-    //--------------------------------------------------------------------------------------------------
-    //endregion
 
     @Override
     public boolean contains(@NotNull String path) {
@@ -172,27 +162,37 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public @NotNull ConfigurationSection createSection(@NotNull String path) {
-        if (contains(path)) {
-            throw new IllegalArgumentException("path " + path + " already exists in this configuration section");
+        root.writeLock().lock();
+        try {
+            if (contains(path)) {
+                throw new IllegalArgumentException("path " + path + " already exists in this configuration section");
+            }
+            ConfigurationSection section = new ConfigurationSectionImpl(root, null);
+            set(path, section);
+            return section;
+        } finally {
+            root.writeLock().unlock();
         }
-        ConfigurationSection section = new ConfigurationSectionImpl(root, null);
-        set(path, section);
-        return section;
     }
 
     @Override
     public @NotNull ConfigurationSection getOrCreateSection(@NotNull String path) {
-        ConfigurationSection section = getOptionalSection(path);
-        if (section == null) {
-            section = createSection(path);
+        root.writeLock().lock();
+        try {
+            ConfigurationSection section = getSection(path, null);
+            if (section == null) {
+                section = createSection(path);
+            }
+            return section;
+        } finally {
+            root.writeLock().unlock();
         }
-        return section;
     }
 
     @Override
     public @NotNull ConfigurationSection getSection(@NotNull String path) {
         // getOptionalSection already acquires lock
-        ConfigurationSection section = getOptionalSection(path);
+        ConfigurationSection section = getSection(path, null);
         return Objects.requireNonNull(section);
     }
 
@@ -212,12 +212,6 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
         } finally {
             root.readLock().unlock();
         }
-    }
-
-    @Override
-    public @Nullable ConfigurationSection getOptionalSection(@NotNull String path) {
-        // getSection already acquires lock
-        return getSection(path, null);
     }
 
     @Override
@@ -241,18 +235,16 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
         }
     }
 
-    @Contract("_, _,_, _, true -> !null")
-    private <T, V> V getType(@NotNull String path,
-                             @NotNull Class<T> superType,
-                             @NotNull Class<V> exactType,
-                             @NotNull Function<T, V> converter,
-                             boolean throwIfNull) {
+    @Contract("_, _,_, true -> !null")
+    private <T> T getType(@NotNull String path,
+                          @NotNull Class<T> exactType,
+                          @NotNull Function<Number, T> converter,
+                          boolean throwIfNull) {
         // lock not needed as this method is supposed to be used
         // on unmodifiable types and get already acquires lock
         Object ret = get(path, null);
-        if (superType.isInstance(ret)) {
-            T value = superType.cast(ret);
-            return converter.apply(value);
+        if (ret instanceof Number number) {
+            return converter.apply(number);
         } else if (ret == null && throwIfNull) {
             throw new NullPointerException("no mapping found for path `" + path + "` in configuration section");
         } else if (ret != null) {
@@ -274,7 +266,6 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
                 V converted = converter.apply(value);
                 list.add(converted);
             } else {
-                System.out.println(obj);
                 throw new ClassCastException(obj.getClass() + " could not be cast to " + exactType);
             }
         }
@@ -284,12 +275,12 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public byte getByte(@NotNull String path) {
-        return getType(path, Integer.class, Byte.class, TypeConverters.BYTE, true);
+        return getType(path, Byte.class, Number::byteValue, true);
     }
 
     @Override
     public byte getByte(@NotNull String path, byte def) {
-        Byte ret = getType(path, Integer.class, Byte.class, TypeConverters.BYTE, false);
+        Byte ret = getType(path, Byte.class, Number::byteValue, false);
         return ret != null ? ret : def;
     }
 
@@ -300,12 +291,12 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public short getShort(@NotNull String path) {
-        return getType(path, Integer.class, Short.class, TypeConverters.SHORT, true);
+        return getType(path, Short.class, Number::shortValue, true);
     }
 
     @Override
     public short getShort(@NotNull String path, short def) {
-        Short ret = getType(path, Integer.class, Short.class, TypeConverters.SHORT, false);
+        Short ret = getType(path, Short.class, Number::shortValue, false);
         return ret != null ? ret : def;
     }
 
@@ -316,12 +307,12 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public int getInt(@NotNull String path) {
-        return getType(path, Integer.class, Integer.class, TypeConverters.INTEGER, true);
+        return getType(path, Integer.class, Number::intValue, true);
     }
 
     @Override
     public int getInt(@NotNull String path, int def) {
-        Integer ret = getType(path, Integer.class, Integer.class, TypeConverters.INTEGER, false);
+        Integer ret = getType(path, Integer.class, Number::intValue, false);
         return ret != null ? ret : def;
     }
 
@@ -332,12 +323,12 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public long getLong(@NotNull String path) {
-        return getType(path, Object.class, Long.class, TypeConverters.LONG, true);
+        return getType(path, Long.class, Number::longValue, true);
     }
 
     @Override
     public long getLong(@NotNull String path, long def) {
-        Long ret = getType(path, Object.class, Long.class, TypeConverters.LONG, false);
+        Long ret = getType(path, Long.class, Number::longValue, false);
         return ret != null ? ret : def;
     }
 
@@ -348,12 +339,12 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public float getFloat(@NotNull String path) {
-        return getType(path, Number.class, Float.class, TypeConverters.FLOAT, true);
+        return getType(path, Float.class, Number::floatValue, true);
     }
 
     @Override
     public float getFloat(@NotNull String path, float def) {
-        Float ret = getType(path, Number.class, Float.class, TypeConverters.FLOAT, false);
+        Float ret = getType(path, Float.class, Number::floatValue, false);
         return ret != null ? ret : def;
     }
 
@@ -364,12 +355,12 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public double getDouble(@NotNull String path) {
-        return getType(path, Number.class, Double.class, TypeConverters.DOUBLE, true);
+        return getType(path, Double.class, Number::doubleValue, true);
     }
 
     @Override
     public double getDouble(@NotNull String path, double def) {
-        Double ret = getType(path, Number.class, Double.class, TypeConverters.DOUBLE, false);
+        Double ret = getType(path, Double.class, Number::doubleValue, false);
         return ret != null ? ret : def;
     }
 
@@ -380,34 +371,62 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public boolean getBoolean(@NotNull String path) {
-        return getType(path, Boolean.class, Boolean.class, TypeConverters.BOOLEAN, true);
+        Object ret = get(path);
+        if (ret instanceof Boolean bool) {
+            return bool;
+        }
+        throw new ClassCastException(ret.getClass() + " could bot be cast to " + Boolean.class);
     }
 
     @Override
     public boolean getBoolean(@NotNull String path, boolean def) {
-        Boolean ret = getType(path, Boolean.class, Boolean.class, TypeConverters.BOOLEAN, false);
-        return ret != null ? ret : def;
+        Object ret = get(path, null);
+        if (ret != null) {
+            if (ret instanceof Boolean bool) {
+                return bool;
+            } else {
+                throw new ClassCastException(ret.getClass() + " could bot be cast to " + Boolean.class);
+            }
+        } else {
+            return def;
+        }
     }
 
     @Override
     public @NotNull List<@NotNull Boolean> getBooleanList(@NotNull String path) {
-        return getTypeList(path, Boolean.class, Boolean.class, TypeConverters.BOOLEAN);
+        List<Boolean> list = new ArrayList<>();
+        for (Object obj : getList(path)) {
+            Objects.requireNonNull(obj);
+            if (obj instanceof Boolean bool) {
+                list.add(bool);
+            } else {
+                throw new ClassCastException(obj.getClass() + " could not be cast to " + Boolean.class);
+            }
+        }
+        return list;
     }
 
     @Override
     public @NotNull String getString(@NotNull String path) {
-        return getType(path, String.class, String.class, s -> s, true);
+        Object ret = get(path);
+        return Objects.toString(ret);
     }
 
     @Override
     public @Nullable String getString(@NotNull String path, @Nullable String def) {
-        String ret = getType(path, String.class, String.class, s -> s, false);
-        return ret != null ? ret : def;
+        Object ret = get(path, null);
+        return ret != null ? Objects.toString(ret) : null;
     }
 
     @Override
     public @NotNull List<@NotNull String> getStringList(@NotNull String path) {
-        return getTypeList(path, String.class, String.class, s -> s);
+        List<String> list = new ArrayList<>();
+        for (Object obj : getList(path)) {
+            Objects.requireNonNull(obj);
+            String str = Objects.toString(obj);
+            list.add(str);
+        }
+        return list;
     }
 
     @Override

@@ -23,9 +23,7 @@
 package net.bobolabs.config;
 
 public enum TraversalMode {
-
     ROOT,
     BRANCHES,
     LEAVES
-
 }
