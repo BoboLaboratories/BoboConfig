@@ -27,8 +27,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 final class ConfigurationSectionImpl implements ConfigurationSection {
@@ -61,7 +61,7 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
         this.root = root;
 
         if (ext != null) {
-            root.writeLock().lock();
+            writeLock().lock();
             try {
                 for (Map.Entry<?, ?> entry : ext.entrySet()) {
                     String key = Objects.toString(entry.getKey());
@@ -72,7 +72,7 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
                     }
                 }
             } finally {
-                root.writeLock().unlock();
+                writeLock().unlock();
             }
         }
     }
@@ -90,50 +90,26 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T> @Nullable T get(@NotNull String path, @Nullable T def) {
         return get(path, def, false);
     }
-
-//    @Override
-//    @SuppressWarnings("unchecked")
-//    public <T> @NotNull T getOrSet(@NotNull String path, @NotNull T value) {
-//        root.writeLock().lock();
-//        try {
-//            T ret;
-//            Object obj = get(path, null);
-//            if (obj != null) {
-//                try {
-//                    ret = (T) value.getClass().cast(obj);
-//                } catch (ClassCastException ignored) {
-//                    throw new ConfigurationTypeException(path, value.getClass(), obj);
-//                }
-//            } else {
-//                set(path, value);
-//                ret = value;
-//            }
-//            return ret;
-//        } finally {
-//            root.writeLock().unlock();
-//        }
-//    }
 
     @Override
     public @NotNull List<@Nullable Object> getList(@NotNull String path) {
         // lock needed to prevent concurrent modifications on the list while
         // copying using copy constructor (returned pointer points to the
         // same list that would be modified by write operations)
-        root.readLock().lock();
+        readLock().lock();
         try {
             return (get(path, null, true) instanceof List<?> list) ? new ArrayList<>(list) : Collections.emptyList();
         } finally {
-            root.readLock().unlock();
+            readLock().unlock();
         }
     }
 
     @Override
     public void set(@NotNull String path, @Nullable Object value) {
-        root.writeLock().lock();
+        writeLock().lock();
         try {
             if (value instanceof Map<?, ?> map) {
                 value = new ConfigurationSectionImpl(root, map);
@@ -164,7 +140,7 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
             root.autoSave();
         } finally {
-            root.writeLock().unlock();
+            writeLock().unlock();
         }
     }
 
@@ -176,7 +152,7 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public @NotNull ConfigurationSection createSection(@NotNull String path) {
-        root.writeLock().lock();
+        writeLock().lock();
         try {
             if (contains(path)) {
                 throw new IllegalArgumentException("path `" + path + "` already exists in this configuration section");
@@ -185,13 +161,13 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
             set(path, section);
             return section;
         } finally {
-            root.writeLock().unlock();
+            writeLock().unlock();
         }
     }
 
     @Override
     public @NotNull ConfigurationSection getOrCreateSection(@NotNull String path) {
-        root.writeLock().lock();
+        writeLock().lock();
         try {
             ConfigurationSection section = getSection(path, path, null, false);
             if (section == null) {
@@ -199,7 +175,7 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
             }
             return section;
         } finally {
-            root.writeLock().unlock();
+            writeLock().unlock();
         }
     }
 
@@ -216,7 +192,7 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public @NotNull Set<@NotNull String> getKeys(@NotNull TraversalMode traversalMode) {
-        root.readLock().lock();
+        readLock().lock();
         try {
             Set<String> accumulator = new HashSet<>();
             for (Map.Entry<String, Object> entry : data.entrySet()) {
@@ -231,7 +207,7 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
             }
             return accumulator;
         } finally {
-            root.readLock().unlock();
+            readLock().unlock();
         }
     }
 
@@ -403,6 +379,16 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
     }
 
     @Override
+    public @NotNull ReentrantReadWriteLock.ReadLock readLock() {
+        return root.readLock();
+    }
+
+    @Override
+    public @NotNull ReentrantReadWriteLock.WriteLock writeLock() {
+        return root.writeLock();
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -418,6 +404,7 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
         return result;
     }
 
+
     // ============================================
     //                   INTERNAL
     // ============================================
@@ -426,14 +413,10 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
         return data;
     }
 
-    @NotNull Configuration getRoot() {
-        return root;
-    }
-
     @SuppressWarnings("unchecked")
     @Contract("_, !null, _ -> !null; _, _, true -> !null")
     private  <T> @Nullable T get(@NotNull String path, @Nullable T def, boolean throwIfNull) {
-        root.readLock().lock();
+        readLock().lock();
         try {
             Object ret = null;
             ConfigurationSection section = getSectionFor(path);
@@ -449,7 +432,7 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
             }
             return ret == null ? def : (T) ret;
         } finally {
-            root.readLock().unlock();
+            readLock().unlock();
         }
     }
 
@@ -499,7 +482,7 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
                                                       @NotNull String relativePath,
                                                       @Nullable ConfigurationSection def,
                                                       boolean throwIfNull) {
-        root.readLock().lock();
+        readLock().lock();
         try {
             Object section = null;
             ConfigurationSectionImpl ret = getSectionFor(relativePath);
@@ -521,12 +504,12 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
             }
             return def;
         } finally {
-            root.readLock().unlock();
+            readLock().unlock();
         }
     }
 
     private @Nullable ConfigurationSectionImpl getSectionFor(@NotNull String path) {
-        root.readLock().lock();
+        readLock().lock();
         try {
             int index = path.indexOf(SEPARATOR);
             if (index == -1) {
@@ -536,7 +519,7 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
                 return (ConfigurationSectionImpl) data.get(rootPath);
             }
         } finally {
-            root.readLock().unlock();
+            readLock().unlock();
         }
     }
 

@@ -24,7 +24,9 @@ package net.bobolabs.config;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.representer.Representer;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -36,17 +38,21 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public final class Configuration implements ConfigurationSection {
 
     private final ReentrantReadWriteLock lock;
-    private final ThreadLocal<Yaml> yaml; // TODO SonarLint dice cose
     private final boolean autoSave;
     private final File file;
+    private final Yaml yaml;
 
     private ConfigurationSectionImpl section;
 
-    Configuration(@NotNull ThreadLocal<Yaml> yaml, @NotNull File file, boolean autoSave) {
+    Configuration(@NotNull File file, boolean autoSave) {
         this.lock = new ReentrantReadWriteLock(true);
         this.autoSave = autoSave;
-        this.yaml = yaml;
         this.file = file;
+
+        DumperOptions options = new DumperOptions();
+        options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+        Representer representer = new ConfigurationRepresenter(options);
+        this.yaml = new Yaml(representer, options);
 
         load();
     }
@@ -54,7 +60,7 @@ public final class Configuration implements ConfigurationSection {
     public void save() {
         writeLock().lock();
         try (Writer writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
-            yaml.get().dump(section.getData(), writer);
+            yaml.dump(section.getData(), writer);
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -80,11 +86,6 @@ public final class Configuration implements ConfigurationSection {
     public <T> @Nullable T get(@NotNull String path, @Nullable T def) {
         return section.get(path, def);
     }
-
-//    @Override
-//    public <T> @NotNull T getOrSet(@NotNull String path, @NotNull T value) {
-//        return section.getOrSet(path, value);
-//    }
 
     @Override
     public @NotNull List<@Nullable Object> getList(@NotNull String path) {
@@ -232,7 +233,7 @@ public final class Configuration implements ConfigurationSection {
     }
 
     @Override
-    public @Nullable String getString(@NotNull String path) {
+    public @NotNull String getString(@NotNull String path) {
         return section.getString(path);
     }
 
@@ -247,7 +248,7 @@ public final class Configuration implements ConfigurationSection {
     }
 
     @Override
-    public <T extends Enum<T>> @Nullable T getEnum(@NotNull String path, @NotNull Class<T> enumClass) {
+    public <T extends Enum<T>> @NotNull T getEnum(@NotNull String path, @NotNull Class<T> enumClass) {
         return section.getEnum(path, enumClass);
     }
 
@@ -261,18 +262,18 @@ public final class Configuration implements ConfigurationSection {
         return section.getEnumList(path, enumClass);
     }
 
+    public @NotNull ReentrantReadWriteLock.ReadLock readLock() {
+        return lock.readLock();
+    }
+
+    public @NotNull ReentrantReadWriteLock.WriteLock writeLock() {
+        return lock.writeLock();
+    }
+
 
     // ============================================
     //                   INTERNAL
     // ============================================
-
-    @NotNull ReentrantReadWriteLock.ReadLock readLock() {
-        return lock.readLock();
-    }
-
-    @NotNull ReentrantReadWriteLock.WriteLock writeLock() {
-        return lock.writeLock();
-    }
 
     void autoSave() {
         if (autoSave) {
@@ -284,7 +285,7 @@ public final class Configuration implements ConfigurationSection {
         writeLock().lock();
         try {
             try (InputStream in = new FileInputStream(file)) {
-                Map<String, Object> data = yaml.get().load(in);
+                Map<String, Object> data = yaml.load(in);
                 section = new ConfigurationSectionImpl(this, data);
             } catch (IOException e) {
                 e.printStackTrace();

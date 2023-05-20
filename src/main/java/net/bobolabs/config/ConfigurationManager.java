@@ -22,7 +22,6 @@
 
 package net.bobolabs.config;
 
-import net.bobolabs.core.Reloadable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,7 +35,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.UnaryOperator;
 
 // A Glowy piace :D
-public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescription> implements Reloadable {
+public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescription> {
 
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
@@ -56,8 +55,7 @@ public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescrip
         this.clazz = clazz;
     }
 
-    @Override
-    public void onEnable() {
+    public void enable() {
         lock.writeLock().lock();
         try {
             for (Field field : clazz.getFields()) {
@@ -93,14 +91,18 @@ public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescrip
         }
     }
 
-    @Override
-    public void onDisable() {
+    public void disable() {
         lock.writeLock().lock();
         try {
             configurations.clear();
         } finally {
             lock.writeLock().unlock();
         }
+    }
+
+    public void reload() {
+        disable();
+        enable();
     }
 
     public @Nullable Configuration getOptionalConfiguration(@NotNull T configuration) {
@@ -110,6 +112,16 @@ public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescrip
         } finally {
             lock.readLock().unlock();
         }
+    }
+
+    public @NotNull Configuration getConfiguration(@NotNull T configuration, @NotNull Configuration def) {
+        Configuration config = getOptionalConfiguration(configuration);
+        return config != null ? config : def;
+    }
+
+    public @NotNull Configuration getConfiguration(@NotNull T configuration, @NotNull T def) {
+        Configuration config = getOptionalConfiguration(configuration);
+        return config != null ? config : getConfiguration(def);
     }
 
     public @NotNull Configuration getConfiguration(@NotNull T configuration) {

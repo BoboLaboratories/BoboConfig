@@ -28,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public interface ConfigurationSection {
 
@@ -182,21 +183,6 @@ public interface ConfigurationSection {
     @Nullable
     @Contract("_, !null -> !null")
     ConfigurationSection getSection(@NotNull String path, @Nullable ConfigurationSection def);
-
-
-//    /**
-//     * Returns the configuration section mapped to the specified {@code path},
-//     * or {@code null} if no mapping is present.
-//     *
-//     * @param path the path whose associated configuration section is to be returned.
-//     * @return     the configuration section mapped to the specified {@code path},
-//     *             or {@code null} if no mapping is present.
-//     * @throws     ClassCastException if the specified path is already associated
-//     *                                with anything but a configuration section.
-//     * @since      2.0.0
-//     */
-//    @Nullable
-//    ConfigurationSection getOptionalSection(@NotNull String path);
 
 
     /**
@@ -597,6 +583,19 @@ public interface ConfigurationSection {
     @Contract("_, _ -> new")
     <T extends Enum<T>> List<@NotNull T> getEnumList(@NotNull String path, @NotNull Class<T> enumClass);
 
+
+    /**
+     *  TODO:
+     */
+
+    @NotNull
+    ReentrantReadWriteLock.ReadLock readLock();
+
+    /**
+     *  TODO:
+     */
+    @NotNull
+    ReentrantReadWriteLock.WriteLock writeLock();
 
     // TODO: <T> T getObject(@NotNull String path, @NotNull Function<ConfigurationSection, T> parser);
 

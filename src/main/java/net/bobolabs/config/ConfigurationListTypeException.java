@@ -1,3 +1,25 @@
+/*
+ * This file is part of BoboConfig.
+ *
+ * Copyright (C) 2023 BoboLabs.net
+ * Copyright (C) 2023 Mattia Mignogna (https://stami.bobolabs.net)
+ * Copyright (C) 2023 Fabio Nebbia (https://glowy.bobolabs.net)
+ * Copyright (C) 2023 Third party contributors
+ *
+ * BoboConfig is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * BoboConfig is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with BoboConfig.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package net.bobolabs.config;
 
 import org.jetbrains.annotations.NotNull;
@@ -5,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class ConfigurationListTypeException extends ConfigurationException {
+public final class ConfigurationListTypeException extends ConfigurationException {
 
     ConfigurationListTypeException(@NotNull String path,
                                    @NotNull Class<?> requestedType,
@@ -28,8 +50,7 @@ public class ConfigurationListTypeException extends ConfigurationException {
                 .append(List.class)
                 .append("<")
                 .append(requestedType)
-                .append("> because it contains ")
-        ;
+                .append("> because it contains ");
 
         if (value == null) {
             builder.append("null element(s)");

@@ -145,11 +145,13 @@ class InMemoryTests {
         // changes are written in memory
         assertEquals(3, config.get("ints.values.ok"));
 
-        // set null
+        // set null values
         config.set("ints.values.ok", null);
-
-        // section no longer contains value
         assertFalse(config.contains("ints.values.ok"));
+
+        // set null section
+        config.set("bytes.values", null);
+        assertFalse(config.contains("bytes.values"));
 
         // throws NullPointerException as value has been set to null
         NullPointerException en = assertThrows(NullPointerException.class, () -> config.getSection("ints.values.ok"));
@@ -158,11 +160,13 @@ class InMemoryTests {
 
     @Test
     void unset() {
-        // unset
+        // unset values
         config.unset("ints.values.ok");
-
-        // section no longer contains value
         assertFalse(config.contains("ints.values.ok"));
+
+        // unset section
+        config.unset("bytes.values");
+        assertFalse(config.contains("bytes.values"));
 
         // throws NullPointerException as value has been unset
         NullPointerException en = assertThrows(NullPointerException.class, () -> config.getSection("ints.values.ok"));
@@ -229,7 +233,7 @@ class InMemoryTests {
         // throws ConfigurationTypeException if mapping is anything but a section
         String path = "ints.values.ok";
         Object value = config.get(path);
-        String ecMessage = new ConfigurationTypeException(path,ConfigurationSection.class, value).getMessage();
+        String ecMessage = new ConfigurationTypeException(path, ConfigurationSection.class, value).getMessage();
         ConfigurationTypeException ec = assertThrows(ConfigurationTypeException.class, () -> config.getSection(path, def));
         assertThat(ec).hasMessageThat().startsWith(ecMessage);
     }

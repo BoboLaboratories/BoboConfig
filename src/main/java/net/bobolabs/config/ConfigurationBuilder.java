@@ -33,14 +33,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 
 public final class ConfigurationBuilder {
-
-    private static final ThreadLocal<Yaml> yaml = ThreadLocal.withInitial(() -> {
-        DumperOptions options = new DumperOptions();
-        options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
-        Representer representer = new ConfigurationRepresenter(options);
-        return new Yaml(representer, options);
-    });
-
     private final File file;
 
     private boolean autoSave = false;
@@ -106,7 +98,7 @@ public final class ConfigurationBuilder {
             }
         }
 
-        return new Configuration(yaml, file, autoSave);
+        return new Configuration(file, autoSave);
     }
 
 }

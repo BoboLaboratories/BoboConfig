@@ -16,7 +16,6 @@ repositories {
 }
 
 dependencies {
-    compileOnly 'net.bobolabs:core:[0.0.4,)'                                // core module
     compileOnly 'org.jetbrains:annotations:24.0.1'                          // JetBrains annotation
     compileOnly('org.yaml:snakeyaml') {                                     // snakeyaml
         version {
@@ -27,7 +26,6 @@ dependencies {
 
 
     // Test
-    testImplementation 'net.bobolabs:core:[0.0.1,)'
     testImplementation('org.yaml:snakeyaml') {
         version {
             strictly('[1.33-SNAPSHOT, 2.0]')
