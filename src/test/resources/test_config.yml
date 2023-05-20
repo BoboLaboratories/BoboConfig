@@ -72,23 +72,16 @@ enums:
     null: [ TEST_1, TEST_2, null ]
     cast: [ TEST_1, TEST_2, 3 ]
 
-section:
-  s1:
-    s1_s1:
-      path1: 1
-      path2: 2
-  s2:
-    path3: 3
-    path4: 4
-
-lists:
-  objects:
+objects:
+  list:
     - 0
     - A
     -
     - ""
+    - true
     - [ 2, 1 ]
     - null
+lists:
   ints:
     - 0
     - -2147483648

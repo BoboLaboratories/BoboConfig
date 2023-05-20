@@ -39,7 +39,7 @@ public interface ConfigurationSection {
      * @param path the path whose presence in this configuration section is to be tested.
      * @return     {@code true} if this configuration section contains a mapping
      *             for the specified {@code path}, {@code false} otherwise.
-     * @since 2.0.0
+     * @since      2.0.0
      */
     boolean contains(@NotNull String path);
 

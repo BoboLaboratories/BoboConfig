@@ -34,6 +34,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ReadTests {
@@ -62,15 +63,24 @@ class ReadTests {
 
     @Test
     void get() {
-        assertEquals(3, config.get("values.int"));
-        assertThrows(NullPointerException.class, () -> config.get("non.existing.key"));
+        // returns actual value if mapping is present
+        assertEquals(-2147483648, config.get("ints.values.ok"));
+
+        // throws NullPointerException if mapping is missing
+        NullPointerException e = assertThrows(NullPointerException.class, () -> config.get("non.existing.key"));
+        assertThat(e).hasMessageThat().isEqualTo("no mapping found for path `non.existing.key` in configuration section");
     }
 
     @Test
     void getWithDefault() {
-        Object def = new Object(); // any object
-        assertEquals(3, config.get("values.int", 0));
-        assertEquals(def, config.get("non.existing.key", def));
+        // any object
+        Object def = new Object();
+
+        // returns actual value if mapping is present
+        assertEquals(-2147483648, config.get("ints.values.ok", def));
+
+        // returns default value if mapping is missing
+        assertSame(def, config.get("non.existing.key", def));
         assertNull(config.get("non.existing.key", null));
     }
 
@@ -78,48 +88,61 @@ class ReadTests {
 
     @Test
     void getList() {
+        // returns actual value if mapping is present
         List<Object> list = new ArrayList<>();
         list.add(0);
         list.add("A");
         list.add(null);
         list.add("");
+        list.add(true);
         list.add(List.of(2, 1));
         list.add(null);
-        assertEquals(list, config.getList("lists.objects"));
+        assertEquals(list, config.getList("objects.list"));
 
-        // test original list is not modified (@Contract("_ -> new"))
-        config.getList("lists.objects").add("O");
-        assertEquals(list, config.getList("lists.objects"));
+        // test @Contract("_ -> new")
+        config.getList("objects.list").add("anything");
+        assertEquals(list, config.getList("objects.list"));
+
+        // throws NullPointerException if mapping is missing
+        NullPointerException e = assertThrows(NullPointerException.class, () -> config.getList("non.existing.key"));
+        assertThat(e).hasMessageThat().isEqualTo("no mapping found for path `non.existing.key` in configuration section");
     }
 
     @Test
     void getSection() {
-        assertNotNull(config.getSection("section"));
-        assertThrows(ClassCastException.class, () -> config.getSection("values.int"));
-        assertThrows(NullPointerException.class, () -> config.getSection("non.existing.key"));
+        // returns actual value if mapping is present
+        assertNotNull(config.getSection("enums"));
+        assertEquals(config.get("enums"), config.getSection("enums"));
 
-        // ours
-//        assertNotNull(config.getOptionalSection("section"));
-//        assertNull(config.getOptionalSection("non.existing.key"));
-//
-//        ConfigurationSection section1 = config.getSection("section");
-//        ConfigurationSection subSection2 = section1.getSection("s2");
-//        assertEquals(Set.of("s1.s1_s1.path1", "s1.s1_s1.path2", "s2.path3", "s2.path4"), section1.getKeys(TraversalMode.LEAVES));
-//        assertEquals(Set.of("path3", "path4"), subSection2.getKeys(TraversalMode.LEAVES));
-//
-//        ClassCastException e = assertThrows(ClassCastException.class, () -> subSection2.getSection("path3"));
-//        assertThat(e).hasMessageThat().contains("class java.lang.Integer cannot be cast to class " + ConfigurationSection.class.getCanonicalName());
-//        assertNull(subSection2.getOptionalSection("path5"));
+        // throws NullPointerException if mapping is missing
+        NullPointerException en = assertThrows(NullPointerException.class, () -> config.getSection("non.existing.section"));
+        assertThat(en).hasMessageThat().isEqualTo("no mapping found for path `non.existing.section` in configuration section");
 
-        // behaves like md_5 -- NO, we do not silently create the section.
+        // throws ClassCastException if mapping is anything but a section
+        Class<ConfigurationSection> c = ConfigurationSection.class;
+        String ecMessage = Integer.class + " cannot be cast to class " + c.getPackageName() + "." + c.getSimpleName();
+        ClassCastException ec = assertThrows(ClassCastException.class, () -> config.getSection("ints.values.ok"));
+        assertThat(ec).hasMessageThat().startsWith(ecMessage);
     }
 
     @Test
     void getSectionsWithDefault() {
-        ConfigurationSection def = config.getSection("section.s2");
-        ConfigurationSection section = config.getSection("non.existing.key", def);
-        assertSame(def, section);
+        // returns actual value if mapping is present
+        ConfigurationSection def = config.getSection("ints");
+        assertEquals(config.get("enums"), config.getSection("enums", def));
+
+        // returns default value if mapping is missing
+        assertSame(def, config.getSection("non.existing.key", def));
+        assertNull(config.getSection("non.existing.key", null));
+
+        // throws ClassCastException if mapping is anything but a section
+        Class<ConfigurationSection> c = ConfigurationSection.class;
+        String ecMessage = Integer.class + " cannot be cast to class " + c.getPackageName() + "." + c.getSimpleName();
+        ClassCastException ec = assertThrows(ClassCastException.class, () -> config.getSection("ints.values.ok", def));
+        assertThat(ec).hasMessageThat().startsWith(ecMessage);
     }
+
+    // TODO getKeys ------------------ ???
 
     @Test
     void getByte() {

@@ -67,7 +67,7 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
     public @NotNull Object get(@NotNull String path) {
         // get already acquires lock
         Object ret = get(path, null);
-        return Objects.requireNonNull(ret);
+        return Objects.requireNonNull(ret, "no mapping found for path `" + path + "` in configuration section");
     }
 
     @Override
@@ -193,7 +193,7 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
     public @NotNull ConfigurationSection getSection(@NotNull String path) {
         // getOptionalSection already acquires lock
         ConfigurationSection section = getSection(path, null);
-        return Objects.requireNonNull(section);
+        return Objects.requireNonNull(section, "no mapping found for path `" + path + "` in configuration section");
     }
 
     @Override
