@@ -28,6 +28,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 final class ConfigurationSectionImpl implements ConfigurationSection {
 
@@ -46,6 +48,8 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
         mappers.put(Boolean.class,  o -> (o instanceof Boolean b) ? b : null);
         mappers.put(String.class,   o -> (o != null) ? Objects.toString(o) : null);
     }
+
+    private static final UnaryOperator<String> NO_MAPPING_FOUND = path -> "no mapping found for path `" + path + "` in configuration section";
 
     private static final char SEPARATOR = '.';
 
@@ -354,27 +358,65 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
     @Override
     public <T extends Enum<T>> @NotNull T getEnum(@NotNull String path, @NotNull Class<T> enumClass) {
         T ret = getEnum(path, enumClass, null);
-        return Objects.requireNonNull(ret);
+        if (ret == null) {
+            String message = NO_MAPPING_FOUND.apply(path);
+            throw new NullPointerException(message);
+        }
+        return ret;
     }
 
     @Override
     public <T extends Enum<T>> @Nullable T getEnum(@NotNull String path, @NotNull Class<T> enumClass, @Nullable T def) {
         // lock not needed as getString already worries about that and String is unmodifiable
         String str = getString(path, null);
-        return str != null ? Enum.valueOf(enumClass, str) : def;
+        if (str == null) {
+            return def;
+        } else {
+            try {
+                return Enum.valueOf(enumClass, str);
+            } catch (IllegalArgumentException ignored) {
+                throw new ConfigurationTypeException(path, enumClass, str);
+            }
+        }
     }
 
     @Override
     public @NotNull <T extends Enum<T>> List<@NotNull T> getEnumList(@NotNull String path, @NotNull Class<T> enumClass) {
         // lock not needed as getStringList already worries about that and returns a new collection
         List<T> ret = new ArrayList<>();
-        for (String str : getStringList(path)) {
-            T entry = Enum.valueOf(enumClass, str);
-            ret.add(entry);
+        List<Object> list = getList(path);
+        for (Object obj : list) {
+            if (obj == null) {
+                throw new ConfigurationListTypeException(path, enumClass, list, null);
+            } else if (obj instanceof String str) {
+                try {
+                    T entry = Enum.valueOf(enumClass, str);
+                    ret.add(entry);
+                } catch (IllegalArgumentException ignored) {
+                    throw new ConfigurationListTypeException(path, enumClass, list, str);
+                }
+            } else {
+                throw new ConfigurationListTypeException(path, enumClass, list, obj);
+            }
         }
         return ret;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ConfigurationSectionImpl that = (ConfigurationSectionImpl) o;
+        if (!data.equals(that.data)) return false;
+        return root.equals(that.root);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = data.hashCode();
+        result = 31 * result + root.hashCode();
+        return result;
+    }
 
     // ============================================
     //                   INTERNAL
@@ -402,7 +444,8 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
                 ret = section.get(subPath, def);
             }
             if (ret == null && throwIfNull) {
-                throw new NullPointerException("no mapping found for path `" + path + "` in configuration section");
+                String message = NO_MAPPING_FOUND.apply(path);
+                throw new NullPointerException(message);
             }
             return ret == null ? def : (T) ret;
         } finally {
@@ -473,7 +516,8 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
                     throw new ConfigurationTypeException(rootPath, ConfigurationSection.class, section);
                 }
             } else if (throwIfNull) {
-                throw new NullPointerException("no mapping found for path `" + rootPath + "` in configuration section");
+                String message = NO_MAPPING_FOUND.apply(rootPath);
+                throw new NullPointerException(message);
             }
             return def;
         } finally {

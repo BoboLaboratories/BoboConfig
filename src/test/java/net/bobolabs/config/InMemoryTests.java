@@ -29,7 +29,9 @@ import org.junit.jupiter.api.io.TempDir;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -202,7 +204,7 @@ class InMemoryTests {
         NullPointerException en = assertThrows(NullPointerException.class, () -> config.getSection("non.existing.key"));
         assertThat(en).hasMessageThat().isEqualTo("no mapping found for path `non.existing.key` in configuration section");
 
-        // throws ClassCastException if mapping is anything but a section
+        // throws ConfigurationTypeException if mapping is anything but a section
         String path = "ints.values.ok";
         Object value = config.get(path);
         String ecMessage = new ConfigurationTypeException(path, ConfigurationSection.class, value).getMessage();
@@ -224,7 +226,7 @@ class InMemoryTests {
         // does not store default value
         assertFalse(config.contains("non.existing.key"));
 
-        // throws ClassCastException if mapping is anything but a section
+        // throws ConfigurationTypeException if mapping is anything but a section
         String path = "ints.values.ok";
         Object value = config.get(path);
         String ecMessage = new ConfigurationTypeException(path,ConfigurationSection.class, value).getMessage();
@@ -232,7 +234,23 @@ class InMemoryTests {
         assertThat(ec).hasMessageThat().startsWith(ecMessage);
     }
 
-    // TODO getKeys ------------------ ???
+    @Test
+    void getKeys() {
+        ConfigurationSection section = config.getSection("keys");
+        ConfigurationSection emptySection = config.createSection("non.existing.key");
+
+        // root traversal
+        assertEquals(Set.of("a", "g", "i"), section.getKeys(TraversalMode.ROOT));
+        assertEquals(Collections.emptySet(), emptySection.getKeys(TraversalMode.ROOT));
+
+        // branches traversal
+        assertEquals(Set.of("a", "a.b", "a.b.c", "a.b.d", "a.e", "a.e.f", "g", "g.h", "i"), section.getKeys(TraversalMode.BRANCHES));
+        assertEquals(Collections.emptySet(), emptySection.getKeys(TraversalMode.BRANCHES));
+
+        // leaves traversal
+        assertEquals(Set.of("a.b.c", "a.b.d", "a.e.f", "g.h", "i"), section.getKeys(TraversalMode.LEAVES));
+        assertEquals(Collections.emptySet(), emptySection.getKeys(TraversalMode.LEAVES));
+    }
 
     @Test
     void getByte() {
@@ -243,7 +261,7 @@ class InMemoryTests {
         NullPointerException en = assertThrows(NullPointerException.class, () -> config.getByte("non.existing.key"));
         assertThat(en).hasMessageThat().isEqualTo("no mapping found for path `non.existing.key` in configuration section");
 
-        // throws ClassCastException if mapping is present but cannot be converted to byte
+        // throws ConfigurationTypeException if mapping is present but cannot be converted to byte
         String path = "bytes.values.cast";
         Object value = config.get(path);
         String message = new ConfigurationTypeException(path, Byte.class, value).getMessage();
@@ -262,7 +280,7 @@ class InMemoryTests {
         // does not store default value
         assertFalse(config.contains("non.existing.key"));
 
-        // throws ClassCastException if mapping is present contains any value that cannot be converted to byte
+        // throws ConfigurationTypeException if mapping is present contains any value that cannot be converted to byte
         String path = "bytes.values.cast";
         Object value = config.get(path);
         String message = new ConfigurationTypeException(path, Byte.class, value).getMessage();
@@ -305,7 +323,7 @@ class InMemoryTests {
         NullPointerException en = assertThrows(NullPointerException.class, () -> config.getShort("non.existing.key"));
         assertThat(en).hasMessageThat().isEqualTo("no mapping found for path `non.existing.key` in configuration section");
 
-        // throws ClassCastException if mapping is present but cannot be converted to short
+        // throws ConfigurationTypeException if mapping is present but cannot be converted to short
         String path = "shorts.values.cast";
         Object value = config.get(path);
         String message = new ConfigurationTypeException(path, Short.class, value).getMessage();
@@ -324,7 +342,7 @@ class InMemoryTests {
         // does not store default value
         assertFalse(config.contains("non.existing.key"));
 
-        // throws ClassCastException if mapping is present contains any value that cannot be converted to shorts
+        // throws ConfigurationTypeException if mapping is present contains any value that cannot be converted to shorts
         String path = "shorts.values.cast";
         Object value = config.get(path);
         String message = new ConfigurationTypeException(path, Short.class, value).getMessage();
@@ -367,7 +385,7 @@ class InMemoryTests {
         NullPointerException en = assertThrows(NullPointerException.class, () -> config.getInt("non.existing.key"));
         assertThat(en).hasMessageThat().isEqualTo("no mapping found for path `non.existing.key` in configuration section");
 
-        // throws ClassCastException if mapping is present but cannot be converted to int
+        // throws ConfigurationTypeException if mapping is present but cannot be converted to int
         String path = "ints.values.cast";
         Object value = config.get(path);
         String message = new ConfigurationTypeException(path, Integer.class, value).getMessage();
@@ -386,7 +404,7 @@ class InMemoryTests {
         // does not store default value
         assertFalse(config.contains("non.existing.key"));
 
-        // throws ClassCastException if mapping is present contains any value that cannot be converted to integer
+        // throws ConfigurationTypeException if mapping is present contains any value that cannot be converted to integer
         String path = "ints.values.cast";
         Object value = config.get(path);
         String message = new ConfigurationTypeException(path, Integer.class, value).getMessage();
@@ -429,7 +447,7 @@ class InMemoryTests {
         NullPointerException en = assertThrows(NullPointerException.class, () -> config.getLong("non.existing.key"));
         assertThat(en).hasMessageThat().isEqualTo("no mapping found for path `non.existing.key` in configuration section");
 
-        // throws ClassCastException if mapping is present but cannot be converted to long
+        // throws ConfigurationTypeException if mapping is present but cannot be converted to long
         String path = "longs.values.cast";
         Object value = config.get(path);
         String message = new ConfigurationTypeException(path, Long.class, value).getMessage();
@@ -448,7 +466,7 @@ class InMemoryTests {
         // does not store default value
         assertFalse(config.contains("non.existing.key"));
 
-        // throws ClassCastException if mapping is present contains any value that cannot be converted to long
+        // throws ConfigurationTypeException if mapping is present contains any value that cannot be converted to long
         String path = "longs.values.cast";
         Object value = config.get(path);
         String message = new ConfigurationTypeException(path, Long.class, value).getMessage();
@@ -491,7 +509,7 @@ class InMemoryTests {
         NullPointerException en = assertThrows(NullPointerException.class, () -> config.getFloat("non.existing.key"));
         assertThat(en).hasMessageThat().isEqualTo("no mapping found for path `non.existing.key` in configuration section");
 
-        // throws ClassCastException if mapping is present but cannot be converted to float
+        // throws ConfigurationTypeException if mapping is present but cannot be converted to float
         String path = "floats.values.cast";
         Object value = config.get(path);
         String message = new ConfigurationTypeException(path, Float.class, value).getMessage();
@@ -510,7 +528,7 @@ class InMemoryTests {
         // does not store default value
         assertFalse(config.contains("non.existing.key"));
 
-        // throws ClassCastException if mapping is present contains any value that cannot be converted to float
+        // throws ConfigurationTypeException if mapping is present contains any value that cannot be converted to float
         String path = "floats.values.cast";
         Object value = config.get(path);
         String message = new ConfigurationTypeException(path, Float.class, value).getMessage();
@@ -553,7 +571,7 @@ class InMemoryTests {
         NullPointerException en = assertThrows(NullPointerException.class, () -> config.getDouble("non.existing.key"));
         assertThat(en).hasMessageThat().isEqualTo("no mapping found for path `non.existing.key` in configuration section");
 
-        // throws ClassCastException if mapping is present but cannot be converted to double
+        // throws ConfigurationTypeException if mapping is present but cannot be converted to double
         String path = "doubles.values.cast";
         Object value = config.get(path);
         String message = new ConfigurationTypeException(path, Double.class, value).getMessage();
@@ -572,7 +590,7 @@ class InMemoryTests {
         // does not store default value
         assertFalse(config.contains("non.existing.key"));
 
-        // throws ClassCastException if mapping is present contains any value that cannot be converted to double
+        // throws ConfigurationTypeException if mapping is present contains any value that cannot be converted to double
         String path = "doubles.values.cast";
         Object value = config.get(path);
         String message = new ConfigurationTypeException(path, Double.class, value).getMessage();
@@ -634,7 +652,7 @@ class InMemoryTests {
         // does not store default value
         assertFalse(config.contains("non.existing.key"));
 
-        // throws ClassCastException if mapping is present contains any value that cannot be converted to boolean
+        // throws ConfigurationTypeException if mapping is present contains any value that cannot be converted to boolean
         String path = "booleans.values.cast";
         Object value = config.get(path);
         String message = new ConfigurationTypeException(path, Boolean.class, value).getMessage();
@@ -677,7 +695,7 @@ class InMemoryTests {
         NullPointerException en = assertThrows(NullPointerException.class, () -> config.getString("non.existing.key"));
         assertThat(en).hasMessageThat().isEqualTo("no mapping found for path `non.existing.key` in configuration section");
 
-        // never throws ClassCastException as any object has its string representation
+        // never throws ConfigurationTypeException as any object has its string representation
     }
 
     @Test
@@ -691,7 +709,7 @@ class InMemoryTests {
         // does not store default value
         assertFalse(config.contains("non.existing.key"));
 
-        // never throws ClassCastException as any object has its string representation
+        // never throws ConfigurationTypeException as any object has its string representation
     }
 
     @Test
@@ -711,7 +729,7 @@ class InMemoryTests {
         ConfigurationListTypeException e = assertThrows(ConfigurationListTypeException.class, () -> config.getStringList("strings.lists.null"));
         assertThat(e).hasMessageThat().isEqualTo(message);
 
-        // never throws ClassCastException as any object has its string representation
+        // never throws ConfigurationTypeException as any object has its string representation
     }
 
     @Test
@@ -719,23 +737,35 @@ class InMemoryTests {
         // returns actual value if mapping is present
         assertEquals(TestEnum.TEST_1, config.getEnum("enums.values.ok", TestEnum.class));
 
-        // throws if no mapping is present
-        assertThrows(NullPointerException.class, () -> config.getEnum("non.existing.key", TestEnum.class));
+        // throws NullPointerException if mapping is missing
+        NullPointerException en = assertThrows(NullPointerException.class, () -> config.getEnum("non.existing.key", TestEnum.class));
+        assertThat(en).hasMessageThat().isEqualTo("no mapping found for path `non.existing.key` in configuration section");
 
-        // throws if mapping is present but cannot be represented as the given enum constant
-        assertThrows(IllegalArgumentException.class, () -> config.getEnum("enums.values.cast", TestEnum.class));
+        // throws ConfigurationTypeException if mapping is present but cannot be converted to enum
+        String path = "enums.values.cast";
+        Object value = config.get(path);
+        String message = new ConfigurationTypeException(path, TestEnum.class, value).getMessage();
+        ConfigurationTypeException ec = assertThrows(ConfigurationTypeException.class, () -> config.getEnum("enums.values.cast", TestEnum.class));
+        assertThat(ec).hasMessageThat().isEqualTo(message);
     }
 
     @Test
     void getEnumDefault() {
         // returns actual value if mapping is present
-        assertEquals(TestEnum.TEST_1, config.getEnum("enums.values.ok", TestEnum.class, TestEnum.TEST_2));
+        assertEquals(TestEnum.TEST_1, config.getEnum("enums.values.ok", TestEnum.class));
 
-        // returns default value if no mapping is present
+        // returns default value if mapping is missing
         assertEquals(TestEnum.TEST_2, config.getEnum("non.existing.key", TestEnum.class, TestEnum.TEST_2));
 
-        // throws if mapping is present but cannot be represented as the given enum constant
-        assertThrows(IllegalArgumentException.class, () -> config.getEnum("enums.values.cast", TestEnum.class, TestEnum.TEST_1));
+        // does not store default value
+        assertFalse(config.contains("non.existing.key"));
+
+        // throws ConfigurationTypeException if mapping is present but cannot be converted to enum
+        String path = "enums.values.cast";
+        Object value = config.get(path);
+        String message = new ConfigurationTypeException(path, TestEnum.class, value).getMessage();
+        ConfigurationTypeException ec = assertThrows(ConfigurationTypeException.class, () -> config.getEnum("enums.values.cast", TestEnum.class, TestEnum.TEST_1));
+        assertThat(ec).hasMessageThat().isEqualTo(message);
     }
 
     @Test
@@ -743,14 +773,25 @@ class InMemoryTests {
         // returns actual value if mapping is present
         assertEquals(List.of(TestEnum.TEST_1, TestEnum.TEST_2), config.getEnumList("enums.lists.ok", TestEnum.class));
 
-        // throws if no mapping is present
-        assertThrows(NullPointerException.class, () -> config.getEnumList("non.existing.key", TestEnum.class));
+        // throws NullPointerException if mapping is missing
+        NullPointerException en = assertThrows(NullPointerException.class, () -> config.getEnumList("non.existing.key", TestEnum.class));
+        assertThat(en).hasMessageThat().isEqualTo("no mapping found for path `non.existing.key` in configuration section");
 
-        // throws if any of the mapped values is null
-        assertThrows(NullPointerException.class, () -> config.getEnumList("enums.lists.null", TestEnum.class));
+        // throws ConfigurationListTypeException if any entry is null
+        String path = "enums.lists.null";
+        List<Object> list = config.getList(path);
+        Object value = list.get(list.size() - 1);
+        String message = new ConfigurationListTypeException(path, TestEnum.class, list, value).getMessage();
+        ConfigurationListTypeException e = assertThrows(ConfigurationListTypeException.class, () -> config.getEnumList("enums.lists.null", TestEnum.class));
+        assertThat(e).hasMessageThat().isEqualTo(message);
 
-        // throws if mapping is present but contains any value that cannot be represented as the given enum constant
-        assertThrows(IllegalArgumentException.class, () -> config.getEnumList("enums.lists.cast", TestEnum.class));
+        // throws ConfigurationListTypeException if any entry could not be converted to enum
+        path = "enums.lists.cast";
+        list = config.getList(path);
+        value = list.get(list.size() - 1);
+        message = new ConfigurationListTypeException(path, TestEnum.class, list, value).getMessage();
+        e = assertThrows(ConfigurationListTypeException.class, () -> config.getEnumList("enums.lists.cast", TestEnum.class));
+        assertThat(e).hasMessageThat().isEqualTo(message);
     }
 
 }
