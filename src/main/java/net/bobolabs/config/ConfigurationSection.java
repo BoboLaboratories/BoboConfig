@@ -72,20 +72,18 @@ public interface ConfigurationSection {
     <T> T get(@NotNull String path, @Nullable T def);
 
 
-    /**
-     * Returns the value mapped to the specified {@code path}, if present;
-     * otherwise a new mapping from {@code path} to {@code value}
-     * is established and {@code value} is returned.
-     *
-     * @param path  the path whose associated value is to be returned (and possibly set).
-     * @param value the value to be mapped to {@code path} if no mapping is present.
-     * @return      the value mapped to the specified {@code path},
-     *              or {@code value} if no mapping is present.
-     * @throws      ClassCastException if a mapping for {@code path} already exists,
-     *                                 but its type differs from that of {@code value}.
-     * @since       2.0.0
-     */
-    @NotNull <T> T getOrSet(@NotNull String path, @NotNull T value);
+//    /**
+//     * Returns the value mapped to the specified {@code path}, if present;
+//     * otherwise a new mapping from {@code path} to {@code value}
+//     * is established and {@code value} is returned.
+//     *
+//     * @param path  the path whose associated value is to be returned (and possibly set).
+//     * @param value the value to be mapped to {@code path} if no mapping is present.
+//     * @return      the value mapped to the specified {@code path},
+//     *              or {@code value} if no mapping is present.
+//     * @since       2.0.0
+//     */
+//    @NotNull <T> T getOrSet(@NotNull String path, @NotNull T value);
 
 
     /**
@@ -146,8 +144,8 @@ public interface ConfigurationSection {
      * @param path the path whose associated configuration section is to be returned,
      *             or to which the new configuration section is to be mapped.
      * @return     the pre-existing or the newly created configuration section.
-     * @throws     ClassCastException if the specified path is already associated
-     *                                with anything but a configuration section.
+     * @throws     ConfigurationTypeException if the specified path is already associated
+     *                                        with anything but a configuration section.
      * @since      2.0.0
      */
     @NotNull
@@ -159,9 +157,9 @@ public interface ConfigurationSection {
      *
      * @param path the path whose associated configuration section is to be returned.
      * @return     the configuration section associated to the specified path.
-     * @throws     NullPointerException if no mapping is present for the specified path.
-     * @throws     ClassCastException   if the specified path is already associated
-     *                                  with anything but a configuration section.
+     * @throws     NullPointerException         if no mapping is present for the specified path.
+     * @throws     ConfigurationTypeException   if the specified path is already associated
+     *                                          with anything but a configuration section.
      * @since      2.0.0
      */
     @NotNull
@@ -224,9 +222,9 @@ public interface ConfigurationSection {
      *
      * @param path the path whose associated byte value is to be returned.
      * @return     the byte value associated to the specified path.
-     * @throws     NullPointerException if no mapping is present for the specified path.
-     * @throws     ClassCastException   if the value associated to the specified path
-     *                                  could not be converted to byte.
+     * @throws     NullPointerException         if no mapping is present for the specified path.
+     * @throws     ConfigurationTypeException   if the value associated to the specified path
+     *                                          could not be converted to byte.
      * @since      2.0.0
      */
     byte getByte(@NotNull String path);
@@ -239,8 +237,8 @@ public interface ConfigurationSection {
      * @param path the path whose associated byte value is to be returned.
      * @return     the byte value associated to the specified path,
      *             or the given default value if no mapping is present.
-     * @throws     ClassCastException if the value associated to the specified path
-     *                                could not be converted to byte.
+     * @throws     ConfigurationTypeException if the value associated to the specified path
+     *                                        could not be converted to byte.
      * @since      2.0.0
      */
     byte getByte(@NotNull String path, byte def);
@@ -251,9 +249,9 @@ public interface ConfigurationSection {
      *
      * @param path the path whose associated byte values are to be returned.
      * @return     a new list which contains all the byte values mapped to {@code path}.
-     * @throws     NullPointerException if no mapping is present for the specified path.
-     * @throws     ClassCastException   if the list contains any value that could not
-     *                                  be converted to byte, or any {@code null} value.
+     * @throws     NullPointerException       if no mapping is present for the specified path.
+     * @throws     ConfigurationTypeException if the list contains any value that could not
+     *                                        be converted to byte, or any {@code null} value.
      * @since      2.0.0
      */
     @NotNull
@@ -519,8 +517,6 @@ public interface ConfigurationSection {
      * @param path the path whose associated string value is to be returned.
      * @return     the string value associated to the specified path.
      * @throws     NullPointerException if no mapping is present for the specified path.
-     * @throws     ClassCastException   if the value mapped to the specified path has
-     *                                  no string representation.
      * @since      2.0.0
      */
     @NotNull
@@ -534,8 +530,6 @@ public interface ConfigurationSection {
      * @param path the path whose string representation of the associated value is to be returned.
      * @return     the string representation of the value associated to the specified path,
      *             or the given default string value if no mapping is present.
-     * @throws     ClassCastException if the value associated to the specified path
-     *                                has no string representation.
      * @since      2.0.0
      */
     @Nullable

@@ -23,8 +23,6 @@
 package net.bobolabs.config;
 
 public enum TestEnum {
-
     TEST_1,
     TEST_2
-
 }

@@ -49,13 +49,11 @@ public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescrip
         this(dataFolder, clazz, String::toLowerCase);
     }
 
-    public ConfigurationManager(@NotNull File dataFolder,
-                                @NotNull Class<T> clazz,
-                                @NotNull UnaryOperator<@NotNull String> normalizer) {
+    public ConfigurationManager(@NotNull File dataFolder, @NotNull Class<T> clazz, @NotNull UnaryOperator<@NotNull String> normalizer) {
         this.configurations = new EnumMap<>(clazz);
-        this.clazz = clazz;
         this.dataFolder = dataFolder;
         this.normalizer = normalizer;
+        this.clazz = clazz;
     }
 
     @Override

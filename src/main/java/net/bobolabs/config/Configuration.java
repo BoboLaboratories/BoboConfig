@@ -81,10 +81,10 @@ public final class Configuration implements ConfigurationSection {
         return section.get(path, def);
     }
 
-    @Override
-    public <T> @NotNull T getOrSet(@NotNull String path, @NotNull T value) {
-        return section.getOrSet(path, value);
-    }
+//    @Override
+//    public <T> @NotNull T getOrSet(@NotNull String path, @NotNull T value) {
+//        return section.getOrSet(path, value);
+//    }
 
     @Override
     public @NotNull List<@Nullable Object> getList(@NotNull String path) {

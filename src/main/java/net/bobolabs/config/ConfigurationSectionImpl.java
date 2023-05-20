@@ -31,6 +31,22 @@ import java.util.function.Function;
 
 final class ConfigurationSectionImpl implements ConfigurationSection {
 
+    private static final Map<Class<?>, Function<Object, ?>> mappers = new HashMap<>();
+
+    static {
+        // numeric types
+        mappers.put(Byte.class,     o -> (o instanceof Number n) ? n.byteValue() : null);
+        mappers.put(Short.class,    o -> (o instanceof Number n) ? n.shortValue() : null);
+        mappers.put(Integer.class,  o -> (o instanceof Number n) ? n.intValue() : null);
+        mappers.put(Long.class,     o -> (o instanceof Number n) ? n.longValue() : null);
+        mappers.put(Float.class,    o -> (o instanceof Number n) ? n.floatValue() : null);
+        mappers.put(Double.class,   o -> (o instanceof Number n) ? n.doubleValue() : null);
+
+        // special types
+        mappers.put(Boolean.class,  o -> (o instanceof Boolean b) ? b : null);
+        mappers.put(String.class,   o -> (o != null) ? Objects.toString(o) : null);
+    }
+
     private static final char SEPARATOR = '.';
 
     private final Map<String, Object> data;
@@ -60,49 +76,43 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
     @Override
     public boolean contains(@NotNull String path) {
         // get already acquires lock
-        return get(path, null) != null;
+        return get(path, null, false) != null;
     }
 
     @Override
     public @NotNull Object get(@NotNull String path) {
         // get already acquires lock
-        Object ret = get(path, null);
-        return Objects.requireNonNull(ret, "no mapping found for path `" + path + "` in configuration section");
+        return get(path, null, true);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public <T> @Nullable T get(@NotNull String path, @Nullable T def) {
-        root.readLock().lock();
-        try {
-            Object ret = null;
-            ConfigurationSection section = getSectionFor(path);
-            if (section == this) {
-                ret = data.get(path);
-            } else if (section != null) {
-                String subPath = getSubPath(path);
-                ret = section.get(subPath, def);
-            }
-            return ret == null ? def : (T) ret;
-        } finally {
-            root.readLock().unlock();
-        }
+        return get(path, def, false);
     }
 
-    @Override
-    public <T> @NotNull T getOrSet(@NotNull String path, @NotNull T value) {
-        root.writeLock().lock();
-        try {
-            T ret = get(path, null);
-            if (ret == null) {
-                set(path, value);
-                ret = value;
-            }
-            return ret;
-        } finally {
-            root.writeLock().unlock();
-        }
-    }
+//    @Override
+//    @SuppressWarnings("unchecked")
+//    public <T> @NotNull T getOrSet(@NotNull String path, @NotNull T value) {
+//        root.writeLock().lock();
+//        try {
+//            T ret;
+//            Object obj = get(path, null);
+//            if (obj != null) {
+//                try {
+//                    ret = (T) value.getClass().cast(obj);
+//                } catch (ClassCastException ignored) {
+//                    throw new ConfigurationTypeException(path, value.getClass(), obj);
+//                }
+//            } else {
+//                set(path, value);
+//                ret = value;
+//            }
+//            return ret;
+//        } finally {
+//            root.writeLock().unlock();
+//        }
+//    }
 
     @Override
     public @NotNull List<@Nullable Object> getList(@NotNull String path) {
@@ -111,7 +121,7 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
         // same list that would be modified by write operations)
         root.readLock().lock();
         try {
-            return (get(path) instanceof List<?> list) ? new ArrayList<>(list) : Collections.emptyList();
+            return (get(path, null, true) instanceof List<?> list) ? new ArrayList<>(list) : Collections.emptyList();
         } finally {
             root.readLock().unlock();
         }
@@ -165,7 +175,7 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
         root.writeLock().lock();
         try {
             if (contains(path)) {
-                throw new IllegalArgumentException("path " + path + " already exists in this configuration section");
+                throw new IllegalArgumentException("path `" + path + "` already exists in this configuration section");
             }
             ConfigurationSection section = new ConfigurationSectionImpl(root, null);
             set(path, section);
@@ -179,7 +189,7 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
     public @NotNull ConfigurationSection getOrCreateSection(@NotNull String path) {
         root.writeLock().lock();
         try {
-            ConfigurationSection section = getSection(path, null);
+            ConfigurationSection section = getSection(path, path, null, false);
             if (section == null) {
                 section = createSection(path);
             }
@@ -192,26 +202,12 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
     @Override
     public @NotNull ConfigurationSection getSection(@NotNull String path) {
         // getOptionalSection already acquires lock
-        ConfigurationSection section = getSection(path, null);
-        return Objects.requireNonNull(section, "no mapping found for path `" + path + "` in configuration section");
+        return getSection(path, path, null, true);
     }
 
     @Override
     public @Nullable ConfigurationSection getSection(@NotNull String path, @Nullable ConfigurationSection def) {
-        root.readLock().lock();
-        try {
-            ConfigurationSection ret = getSectionFor(path);
-            String subPath = getSubPath(path);
-            ConfigurationSection section = def;
-            if (ret == this) {
-                section = (ConfigurationSection) data.get(subPath);
-            } else if (ret != null) {
-                section = ret.getSection(subPath, def);
-            }
-            return section;
-        } finally {
-            root.readLock().unlock();
-        }
+        return getSection(path, path, def, false);
     }
 
     @Override
@@ -235,208 +231,124 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
         }
     }
 
-    @Contract("_, _, _, true -> !null")
-    private <T> T getType(@NotNull String path,
-                          @NotNull Class<T> exactType,
-                          @NotNull Function<Number, T> converter,
-                          boolean throwIfNull) {
-        // lock not needed as this method is supposed to be used
-        // on unmodifiable types and get already acquires lock
-        Object ret = get(path, null);
-        if (ret instanceof Number number) {
-            return converter.apply(number);
-        } else if (ret == null && throwIfNull) {
-            throw new NullPointerException("no mapping found for path `" + path + "` in configuration section");
-        } else if (ret != null) {
-            throw new ClassCastException(ret.getClass() + " could not be cast to " + exactType);
-        }
-        return null;
-    }
-
-    @Contract("_, _, _, !null -> !null")
-    private <T> T getType(@NotNull String path,
-                           @NotNull Class<T> requiredType,
-                           @NotNull Function<Number, T> converter,
-                           @Nullable T def) {
-        Object ret = (def != null) ? get(path, def) : get(path);
-        if (ret instanceof Number number) {
-            return converter.apply(number);
-        }
-        throw new ConfigurationTypeException(path, ret, requiredType);
-    }
-
-    @Contract("_, _, _, _ -> new")
-    private <T, V> @NotNull List<@NotNull V> getTypeList(@NotNull String path,
-                                                         @NotNull Class<T> superType,
-                                                         @NotNull Class<V> exactType,
-                                                         @NotNull Function<T, V> converter) {
-        List<V> list = new ArrayList<>();
-        for (Object obj : getList(path)) {
-            Objects.requireNonNull(obj);
-            if (superType.isInstance(obj)) {
-                T value = superType.cast(obj);
-                V converted = converter.apply(value);
-                list.add(converted);
-            } else {
-                throw new ClassCastException(obj.getClass() + " could not be cast to " + exactType);
-            }
-        }
-        return list;
-    }
-
     @Override
     public byte getByte(@NotNull String path) {
-        return getType(path, Byte.class, Number::byteValue, null);
+        return getType(path, Byte.class);
     }
 
     @Override
     public byte getByte(@NotNull String path, byte def) {
-        return getType(path, Byte.class, Number::byteValue, def);
+        return getType(path, Byte.class, def);
     }
 
     @Override
     public @NotNull List<@NotNull Byte> getByteList(@NotNull String path) {
-        return getTypeList(path, Integer.class, Byte.class, TypeConverters.BYTE);
+        return getTypeList(path, Byte.class);
     }
 
     @Override
     public short getShort(@NotNull String path) {
-        return getType(path, Short.class, Number::shortValue, true);
+        return getType(path, Short.class);
     }
 
     @Override
     public short getShort(@NotNull String path, short def) {
-        Short ret = getType(path, Short.class, Number::shortValue, false);
-        return ret != null ? ret : def;
+        return getType(path, Short.class, def);
     }
 
     @Override
     public @NotNull List<@NotNull Short> getShortList(@NotNull String path) {
-        return getTypeList(path, Integer.class, Short.class, TypeConverters.SHORT);
+        return getTypeList(path, Short.class);
     }
 
     @Override
     public int getInt(@NotNull String path) {
-        return getType(path, Integer.class, Number::intValue, true);
+        return getType(path, Integer.class);
     }
 
     @Override
     public int getInt(@NotNull String path, int def) {
-        Integer ret = getType(path, Integer.class, Number::intValue, false);
-        return ret != null ? ret : def;
+        return getType(path, Integer.class, def);
     }
 
     @Override
     public @NotNull List<@NotNull Integer> getIntList(@NotNull String path) {
-        return getTypeList(path, Integer.class, Integer.class, TypeConverters.INTEGER);
+        return getTypeList(path, Integer.class);
     }
 
     @Override
     public long getLong(@NotNull String path) {
-        return getType(path, Long.class, Number::longValue, true);
+        return getType(path, Long.class);
     }
 
     @Override
     public long getLong(@NotNull String path, long def) {
-        Long ret = getType(path, Long.class, Number::longValue, false);
-        return ret != null ? ret : def;
+        return getType(path, Long.class, def);
     }
 
     @Override
     public @NotNull List<@NotNull Long> getLongList(@NotNull String path) {
-        return getTypeList(path, Object.class, Long.class, TypeConverters.LONG);
+        return getTypeList(path, Long.class);
     }
 
     @Override
     public float getFloat(@NotNull String path) {
-        return getType(path, Float.class, Number::floatValue, true);
+        return getType(path, Float.class);
     }
 
     @Override
     public float getFloat(@NotNull String path, float def) {
-        Float ret = getType(path, Float.class, Number::floatValue, false);
-        return ret != null ? ret : def;
+        return getType(path, Float.class, def);
     }
 
     @Override
     public @NotNull List<@NotNull Float> getFloatList(@NotNull String path) {
-        return getTypeList(path, Number.class, Float.class, TypeConverters.FLOAT);
+        return getTypeList(path, Float.class);
     }
 
     @Override
     public double getDouble(@NotNull String path) {
-        return getType(path, Double.class, Number::doubleValue, true);
+        return getType(path, Double.class);
     }
 
     @Override
     public double getDouble(@NotNull String path, double def) {
-        Double ret = getType(path, Double.class, Number::doubleValue, false);
-        return ret != null ? ret : def;
+        return getType(path, Double.class, def);
     }
 
     @Override
     public @NotNull List<@NotNull Double> getDoubleList(@NotNull String path) {
-        return getTypeList(path, Number.class, Double.class, TypeConverters.DOUBLE);
+        return getTypeList(path, Double.class);
     }
 
     @Override
     public boolean getBoolean(@NotNull String path) {
-        Object ret = get(path);
-        if (ret instanceof Boolean bool) {
-            return bool;
-        }
-        throw new ClassCastException(ret.getClass() + " could bot be cast to " + Boolean.class);
+        return getType(path, Boolean.class);
     }
 
     @Override
     public boolean getBoolean(@NotNull String path, boolean def) {
-        Object ret = get(path, null);
-        if (ret != null) {
-            if (ret instanceof Boolean bool) {
-                return bool;
-            } else {
-                throw new ClassCastException(ret.getClass() + " could bot be cast to " + Boolean.class);
-            }
-        } else {
-            return def;
-        }
+        return getType(path, Boolean.class, def);
     }
 
     @Override
     public @NotNull List<@NotNull Boolean> getBooleanList(@NotNull String path) {
-        List<Boolean> list = new ArrayList<>();
-        for (Object obj : getList(path)) {
-            Objects.requireNonNull(obj);
-            if (obj instanceof Boolean bool) {
-                list.add(bool);
-            } else {
-                throw new ClassCastException(obj.getClass() + " could not be cast to " + Boolean.class);
-            }
-        }
-        return list;
+        return getTypeList(path, Boolean.class);
     }
 
     @Override
     public @NotNull String getString(@NotNull String path) {
-        Object ret = get(path);
-        return Objects.toString(ret);
+        return getType(path, String.class);
     }
 
     @Override
     public @Nullable String getString(@NotNull String path, @Nullable String def) {
-        Object ret = get(path, null);
-        return ret != null ? Objects.toString(ret) : null;
+        return getType(path, String.class, def);
     }
 
     @Override
     public @NotNull List<@NotNull String> getStringList(@NotNull String path) {
-        List<String> list = new ArrayList<>();
-        for (Object obj : getList(path)) {
-            Objects.requireNonNull(obj);
-            String str = Objects.toString(obj);
-            list.add(str);
-        }
-        return list;
+        return getTypeList(path, String.class);
     }
 
     @Override
@@ -476,7 +388,100 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
         return root;
     }
 
-    private @Nullable ConfigurationSection getSectionFor(@NotNull String path) {
+    @SuppressWarnings("unchecked")
+    @Contract("_, !null, _ -> !null; _, _, true -> !null")
+    private  <T> @Nullable T get(@NotNull String path, @Nullable T def, boolean throwIfNull) {
+        root.readLock().lock();
+        try {
+            Object ret = null;
+            ConfigurationSection section = getSectionFor(path);
+            if (section == this) {
+                ret = data.get(path);
+            } else if (section != null) {
+                String subPath = getSubPath(path);
+                ret = section.get(subPath, def);
+            }
+            if (ret == null && throwIfNull) {
+                throw new NullPointerException("no mapping found for path `" + path + "` in configuration section");
+            }
+            return ret == null ? def : (T) ret;
+        } finally {
+            root.readLock().unlock();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private @NotNull <T> Function<Object, @Nullable T> getMapperFor(@NotNull Class<T> type) {
+        return (Function<Object, @Nullable T>) mappers.get(type);
+    }    private <T> @NotNull T getType(@NotNull String path, @NotNull Class<T> type) {
+        Object obj = get(path);
+        T ret = getMapperFor(type).apply(obj);
+        if (ret == null) {
+            throw new ConfigurationTypeException(path, type, obj);
+        }
+        return ret;
+    }
+
+    @Contract("_, _, !null -> !null")
+    private <T> T getType(@NotNull String path, @NotNull Class<T> type, @Nullable T def) {
+        Object obj = get(path, null);
+        if (obj == null) {
+            return def;
+        } else {
+            T ret = getMapperFor(type).apply(obj);
+            if (ret == null) {
+                throw new ConfigurationTypeException(path, type, obj);
+            }
+            return ret;
+        }
+    }
+
+    @Contract("_, _ -> new")
+    private <T> @NotNull List<@NotNull T> getTypeList(@NotNull String path, @NotNull Class<T> type) {
+        List<T> list = new ArrayList<>();
+        List<Object> ret = getList(path);
+        for (Object obj : ret) {
+            T value = getMapperFor(type).apply(obj);
+            if (value != null) {
+                list.add(value);
+            } else {
+                throw new ConfigurationListTypeException(path, type, ret, obj);
+            }
+        }
+        return list;
+    }
+
+    @Contract("_, _, !null, _ -> !null; _, _, _, true -> !null")
+    private @Nullable ConfigurationSection getSection(@NotNull String rootPath,
+                                                      @NotNull String relativePath,
+                                                      @Nullable ConfigurationSection def,
+                                                      boolean throwIfNull) {
+        root.readLock().lock();
+        try {
+            Object section = null;
+            ConfigurationSectionImpl ret = getSectionFor(relativePath);
+            String subPath = getSubPath(relativePath);
+            if (ret == this) {
+                section = data.get(subPath);
+            } else if (ret != null) {
+                section = ret.getSection(rootPath, subPath, def, false);
+            }
+            if (section != null) {
+                try {
+                    return (ConfigurationSection) section;
+                } catch (ClassCastException ignored) {
+                    throw new ConfigurationTypeException(rootPath, ConfigurationSection.class, section);
+                }
+            } else if (throwIfNull) {
+                throw new NullPointerException("no mapping found for path `" + rootPath + "` in configuration section");
+            }
+            return def;
+        } finally {
+            root.readLock().unlock();
+        }
+    }
+
+    private @Nullable ConfigurationSectionImpl getSectionFor(@NotNull String path) {
         root.readLock().lock();
         try {
             int index = path.indexOf(SEPARATOR);
@@ -484,7 +489,7 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
                 return this;
             } else {
                 String rootPath = path.substring(0, index);
-                return (ConfigurationSection) data.get(rootPath);
+                return (ConfigurationSectionImpl) data.get(rootPath);
             }
         } finally {
             root.readLock().unlock();

@@ -22,9 +22,6 @@
 
 package net.bobolabs.config;
 
-import net.bobolabs.config.Configuration;
-import net.bobolabs.config.ConfigurationBuilder;
-import net.bobolabs.config.TraversalMode;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
