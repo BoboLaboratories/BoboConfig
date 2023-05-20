@@ -20,7 +20,7 @@
  * along with BoboConfig.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package net.bobolabs.config.tests;
+package net.bobolabs.config;
 
 import net.bobolabs.config.Configuration;
 import net.bobolabs.config.ConfigurationBuilder;

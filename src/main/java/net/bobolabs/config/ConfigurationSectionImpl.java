@@ -235,7 +235,7 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
         }
     }
 
-    @Contract("_, _,_, true -> !null")
+    @Contract("_, _, _, true -> !null")
     private <T> T getType(@NotNull String path,
                           @NotNull Class<T> exactType,
                           @NotNull Function<Number, T> converter,
@@ -251,6 +251,18 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
             throw new ClassCastException(ret.getClass() + " could not be cast to " + exactType);
         }
         return null;
+    }
+
+    @Contract("_, _, _, !null -> !null")
+    private <T> T getType(@NotNull String path,
+                           @NotNull Class<T> requiredType,
+                           @NotNull Function<Number, T> converter,
+                           @Nullable T def) {
+        Object ret = (def != null) ? get(path, def) : get(path);
+        if (ret instanceof Number number) {
+            return converter.apply(number);
+        }
+        throw new ConfigurationTypeException(path, ret, requiredType);
     }
 
     @Contract("_, _, _, _ -> new")
@@ -272,16 +284,14 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
         return list;
     }
 
-
     @Override
     public byte getByte(@NotNull String path) {
-        return getType(path, Byte.class, Number::byteValue, true);
+        return getType(path, Byte.class, Number::byteValue, null);
     }
 
     @Override
     public byte getByte(@NotNull String path, byte def) {
-        Byte ret = getType(path, Byte.class, Number::byteValue, false);
-        return ret != null ? ret : def;
+        return getType(path, Byte.class, Number::byteValue, def);
     }
 
     @Override

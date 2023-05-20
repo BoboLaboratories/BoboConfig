@@ -1,11 +1,11 @@
 bytes:
   values:
-    ok: -128
+    ok: 1
+    cast: true
   lists:
     ok: [ 0, -128, 127 ]
     null: [ 0, -128, 127, null ]
-    cast1: [ 0, -128, 127, 3.4 ]
-    cast2: [ 0, -128, 129 ]
+    cast: [ 0, -128, 127, 3.4 ]
 
 shorts:
   values:

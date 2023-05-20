@@ -20,7 +20,7 @@
  * along with BoboConfig.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package net.bobolabs.config.tests;
+package net.bobolabs.config;
 
 public enum TestEnum {
 

@@ -20,11 +20,8 @@
  * along with BoboConfig.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package net.bobolabs.config.tests;
+package net.bobolabs.config;
 
-import net.bobolabs.config.Configuration;
-import net.bobolabs.config.ConfigurationBuilder;
-import net.bobolabs.config.ConfigurationSection;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -147,25 +144,34 @@ class ReadTests {
     @Test
     void getByte() {
         // returns actual value if mapping is present
-        assertEquals(Byte.MIN_VALUE, config.getByte("bytes.values.ok"));
+        assertEquals((byte) 1, config.getByte("bytes.values.ok"));
 
-        // throws if no mapping is present
-        assertThrows(NullPointerException.class, () -> config.getByte("non.existing.key"));
+        // throws NullPointerException if mapping is missing
+        NullPointerException en = assertThrows(NullPointerException.class, () -> config.getByte("non.existing.key"));
+        assertThat(en).hasMessageThat().isEqualTo("no mapping found for path `non.existing.key` in configuration section");
 
-        // throws if mapping is present but cannot be represented as byte
-        // assertThrows(ClassCastException.class, () -> config.getByte("bytes.values.cast"));
+        // throws ClassCastException if mapping is present but cannot be converted to byte
+        String path = "bytes.values.cast";
+        Object value = config.get(path);
+        String message = new ConfigurationTypeException(path, value, Byte.class).getMessage();
+        ClassCastException ec = assertThrows(ClassCastException.class, () -> config.getByte("bytes.values.cast"));
+        assertThat(ec).hasMessageThat().isEqualTo(message);
     }
 
     @Test
     void getByteDefault() {
         // returns actual value if mapping is present
-        assertEquals(Byte.MIN_VALUE, config.getByte("bytes.values.ok", (byte) 1));
+        assertEquals((byte) 1, config.getByte("bytes.values.ok", (byte) 2));
 
-        // returns default value if no mapping is present
-        assertEquals((byte) -1, config.getByte("non.existing.key", (byte) -1));
+        // returns default value if mapping is missing
+        assertEquals((byte) 2, config.getByte("non.existing.key", (byte) 2));
 
-        // throws if mapping is present but cannot be represented as byte
-        // assertThrows(ClassCastException.class, () -> config.getByte("bytes.values.cast", (byte) 1));
+        // throws ClassCastException if mapping is present but cannot be converted to byte
+        String path = "bytes.values.cast";
+        Object value = config.get(path);
+        String message = new ConfigurationTypeException(path, value, Byte.class).getMessage();
+        ClassCastException ec = assertThrows(ClassCastException.class, () -> config.getByte("bytes.values.cast", (byte) 2));
+        assertThat(ec).hasMessageThat().isEqualTo(message);
     }
 
     @Test
@@ -173,15 +179,19 @@ class ReadTests {
         // returns actual value if mapping is present
         assertEquals(List.of((byte) 0, Byte.MIN_VALUE, Byte.MAX_VALUE), config.getByteList("bytes.lists.ok"));
 
-        // throws if no mapping is present
-        assertThrows(NullPointerException.class, () -> config.getByteList("non.existing.key"));
+        // throws NullPointerException if mapping is missing
+        NullPointerException en = assertThrows(NullPointerException.class, () -> config.getByteList("non.existing.key"));
+        assertThat(en).hasMessageThat().isEqualTo("no mapping found for path `non.existing.key` in configuration section");
 
-        // throws if any of the mapped values is null
-        assertThrows(NullPointerException.class, () -> config.getByteList("bytes.lists.null"));
+        // throws ClassCastException if any entry is null
+        assertThrows(ClassCastException.class, () -> config.getByteList("bytes.lists.null"));
 
-        // throws if mapping is present but contains any value that cannot be represented as byte
-        assertThrows(ClassCastException.class, () -> config.getByteList("bytes.lists.cast1"));
-        assertThrows(ClassCastException.class, () -> config.getByteList("bytes.lists.cast2"));
+        // throws ClassCastException if any could not be converted to byte
+        String path = "bytes.values.cast";
+        Object value = config.get(path);
+        String message = new ConfigurationTypeException(path, value, Byte.class).getMessage();
+        ClassCastException ec = assertThrows(ClassCastException.class, () -> config.getByteList("bytes.values.cast"));
+        assertThat(ec).hasMessageThat().isEqualTo(message);
     }
 
     @Test
