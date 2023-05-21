@@ -35,7 +35,7 @@ A thread-safe YAML 1.1 configuration library which provides reload and auto-save
 
 ### Usage
 
-Here are the full [Javadocs](https://docs.bobolabs.net/).
+Here are the full [Javadocs](https://docs.bobolabs.net/config/).
 
 #### Gradle
 ```gradle
