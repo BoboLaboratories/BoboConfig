@@ -6,18 +6,17 @@
  * Copyright (C) 2023 Fabio Nebbia (https://glowy.bobolabs.net)
  * Copyright (C) 2023 Third party contributors
  *
- * BoboConfig is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * BoboConfig is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with BoboConfig.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package net.bobolabs.config;
@@ -28,7 +27,9 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
@@ -56,15 +57,43 @@ public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescrip
      * Construct a new configuration managers which loads configurations from the
      * specified {@code directory} using the given {@code description} enum.
      *
-     * @param directory the directory inside which configuration files are to be loaded.
+     * @param directory   the directory inside which configuration files are to be loaded.
      * @param description the configuration description enum which provides instruction
      *                    on how configuration files are to be loaded.
-     * @since             2.0.0
+     * @since 2.0.0
      */
     public ConfigurationManager(@NotNull File directory, @NotNull Class<T> description) {
         this.configurations = new EnumMap<>(description);
         this.directory = directory;
         this.clazz = description;
+    }
+
+
+    /**
+     * Loads the specified {@link Configuration}, if not already loaded; then returns it.
+     *
+     * @param configuration the configuration to be loaded.
+     * @return              the loaded configuration.
+     * @since               2.0.0
+     */
+    public @NotNull Configuration load(@NotNull T configuration) {
+        lock.writeLock().lock();
+        try {
+            Config config = makeConfig(configuration);
+            ConfigurationLoader loader = ConfigurationLoader
+                    .fromFile(directory, config.path())
+                    .autoSave(config.autoSave());
+
+            if (config.saveDefaultResource()) {
+                loader.setDefaultResource(config.defaultResource());
+            }
+
+            Configuration loaded = loader.load();
+            configurations.put(configuration, loaded);
+            return loaded;
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
 
@@ -76,54 +105,9 @@ public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescrip
     public void loadAll() {
         lock.writeLock().lock();
         try {
-            for (Field field : clazz.getFields()) {
-                T key = Enum.valueOf(clazz, field.getName());
-                load(key);
+            for (T configuration : clazz.getEnumConstants()) {
+                load(configuration);
             }
-        } finally {
-            lock.writeLock().unlock();
-        }
-    }
-
-
-    /**
-     * Loads the specified {@link Configuration}, if not already loaded; then returns it.
-     *
-     * @param configuration the configuration to be loaded.
-     * @since               2.0.0
-     */
-    public @NotNull Configuration load(@NotNull T configuration) {
-        lock.writeLock().lock();
-        try {
-            // Retrieve annotation data
-            Field field = clazz.getField(configuration.name());
-            Config annotation = field.getDeclaredAnnotation(Config.class);
-            if (annotation == null) {
-                annotation = DEFAULT_CONFIG_ANNOTATION;
-            }
-
-            // Compute path
-            String path = annotation.path();
-            path = path.isEmpty() ? configuration.name() + ".yml" : path;
-            // path = normalizer.apply(path);
-
-            // Compute default resource
-            String defaultResource = annotation.defaultResource();
-            // TODO defaultResource = Strings.isNullOrEmpty(defaultResource) ? path : defaultResource;
-
-            // Build configuration
-            Configuration config = ConfigurationLoader
-                    .fromFile(directory, path)
-                    .setDefaultResource(annotation.defaultResource())
-                    .setDefaultResource(defaultResource)
-                    .autoSave(annotation.autoSave())
-                    .load();
-
-            configurations.put(configuration, config);
-            return config;
-
-        } catch (NoSuchFieldException e) {
-            throw new ConfigurationException("could not load configuration " + configuration, e);
         } finally {
             lock.writeLock().unlock();
         }
@@ -134,15 +118,12 @@ public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescrip
      * Unloads the specified {@link Configuration}, if already loaded.
      *
      * @param configuration the configuration to be unloaded.
-     * @since               2.0.0
+     * @since 2.0.0
      */
     public void unload(@NotNull T configuration) {
         lock.writeLock().lock();
         try {
-            Optional<Configuration> config = getOptional(configuration);
-            if (config.isPresent()) {
-                configurations.remove(configuration);
-            }
+            configurations.remove(configuration);
         } finally {
             lock.writeLock().unlock();
         }
@@ -165,92 +146,12 @@ public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescrip
 
 
     /**
-     * Reloads the specified {@link Configuration}, if already loaded; or loads it otherwise.
-     * <p>
-     * Note that, if the configuration is already loaded, this method has the same effect as
-     * {@code configurationManager.get(CONFIG).reload();} except it also returns the configuration itself.
-     *
-     * @param configuration the configuration to be reloaded.
-     * @since               2.0.0
-     */
-    public @NotNull Configuration reload(@NotNull T configuration) {
-        unload(configuration);
-        return load(configuration);
-    }
-
-
-    /**
-     * Reloads any previously loaded {@link Configuration}.
-     *
-     * @since 2.0.0
-     */
-    public void reloadAll() {
-        lock.writeLock().lock();
-        try {
-            Set<T> configs = new HashSet<>();
-            for (T key : configurations.keySet()) {
-                configs.add(key);
-                unload(key);
-            }
-
-            for (T config : configs) {
-                load(config);
-            }
-        } finally {
-            lock.writeLock().unlock();
-        }
-    }
-
-
-    /**
-     * Saves the specified {@link Configuration}, if loaded; otherwise throws {@link IllegalStateException}.
-     * <p>
-     * Note that this method has the same effect as {@code configurationManager.get(CONFIG).save();}
-     * except it also returns the configuration itself.
-     *
-     * @param configuration the configuration to be reloaded.
-     * @throws              IllegalStateException if the specified configuration is not
-     *                                            loaded when this method is invoked.
-     * @since               2.0.0
-     */
-    public @NotNull Configuration save(@NotNull T configuration) {
-        lock.writeLock().lock();
-        try {
-            Configuration config = get(configuration);
-            config.save();
-            return config;
-        } catch (NullPointerException e) {
-            throw new IllegalStateException("the specified configuration was not loaded");
-        } finally {
-            lock.writeLock().unlock();
-        }
-    }
-
-
-    /**
-     * Saves any loaded {@link Configuration}.
-     *
-     * @since 2.0.0
-     */
-    public void saveAll() {
-        lock.writeLock().lock();
-        try {
-            for (T key : configurations.keySet()) {
-                save(key);
-            }
-        } finally {
-            lock.writeLock().unlock();
-        }
-    }
-
-
-    /**
      * Returns the specified optional {@link Configuration}, if loaded;
      * or an empty {@link Optional} otherwise.
      *
      * @param configuration the optional configuration that is to be returned if loaded.
-     * @return              the specified optional {@link Configuration}, if loaded.
-     * @since               2.0.0
+     * @return the specified optional {@link Configuration}, if loaded.
+     * @since 2.0.0
      */
     public @NotNull Optional<Configuration> getOptional(@NotNull T configuration) {
         lock.readLock().lock();
@@ -267,10 +168,11 @@ public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescrip
      *
      * @param configuration the configuration that is to be returned.
      * @param def           the default configuration that is to be returned if the specified one is not loaded.
-     * @return              the specified {@link Configuration} if loaded; or the given default one if not.
-     * @since               2.0.0
+     * @return the specified {@link Configuration} if loaded; or the given default one if not.
+     * @since 2.0.0
      */
     public @NotNull Configuration get(@NotNull T configuration, @NotNull Configuration def) {
+        // getOptional already acquires lock
         return getOptional(configuration).orElse(def);
     }
 
@@ -281,16 +183,16 @@ public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescrip
      *
      * @param configuration the configuration that is to be returned.
      * @param def           the default configuration that is to be returned if the specified one is not loaded.
-     * @return              the specified {@link Configuration} if loaded; or the given default one if not.
-     * @throws              NullPointerException if none of the configurations are loaded when this method is invoked.
-     * @since               2.0.0
+     * @return the specified {@link Configuration} if loaded; or the given default one if not.
+     * @throws NullPointerException if none of the configurations are loaded when this method is invoked.
+     * @since 2.0.0
      */
     public @NotNull Configuration get(@NotNull T configuration, @NotNull T def) {
+        // read lock needed as two get operations could be performed and must be performed atomically
         lock.readLock().lock();
         try {
-            Optional<Configuration> config = getOptional(configuration);
-            Configuration defaultConfig = get(def);
-            return config.orElse(defaultConfig);
+            Optional<Configuration> opt = getOptional(configuration);
+            return opt.orElseGet(() -> get(def));
         } finally {
             lock.readLock().unlock();
         }
@@ -306,38 +208,51 @@ public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescrip
      * @since 2.0.0
      */
     public @NotNull Configuration get(@NotNull T configuration) {
-        // getOptionalConfiguration already acquires lock
+        // getOptional already acquires lock
         return getOptional(configuration).orElseThrow(() ->
-                new NullPointerException("the specified configuration was not loaded"));
+                new NullPointerException("configuration " + configuration + " was not loaded"));
     }
 
 
-    private static final Config DEFAULT_CONFIG_ANNOTATION = new Config() {
+    // ============================================
+    //                   INTERNAL
+    // ============================================
 
-        @Override
-        public Class<? extends Annotation> annotationType() {
-            return Config.class;
-        }
+    @NotNull Config makeConfig(@NotNull T configuration) {
+        try {
+            Field field = clazz.getField(configuration.name());
+            Config annotation = field.getDeclaredAnnotation(Config.class);
+            return new Config() {
+                @Override
+                public Class<? extends Annotation> annotationType() {
+                    return Config.class;
+                }
 
-        @Override
-        public String path() {
-            return ConfigDefaults.PATH;
-        }
+                @Override
+                public @NotNull String path() {
+                    String path = annotation != null ? annotation.path() : ConfigDefaults.PATH;
+                    return path.isBlank() ? configuration.name().toLowerCase() + ".yml" : path;
+                }
 
-        @Override
-        public String defaultResource() {
-            return ConfigDefaults.RESOURCE;
-        }
+                @Override
+                public @NotNull String defaultResource() {
+                    String defaultResource = annotation != null ? annotation.defaultResource() : ConfigDefaults.RESOURCE;
+                    return defaultResource.isBlank() ? path() : defaultResource;
+                }
 
-        @Override
-        public boolean autoSave() {
-            return ConfigDefaults.AUTO_SAVE;
-        }
+                @Override
+                public boolean autoSave() {
+                    return annotation != null ? annotation.autoSave() : ConfigDefaults.AUTO_SAVE;
+                }
 
-        @Override
-        public boolean saveDefaultResource() {
-            return ConfigDefaults.SAVE_DEFAULT_RESOURCE;
+                @Override
+                public boolean saveDefaultResource() {
+                    return annotation != null ? annotation.saveDefaultResource() : ConfigDefaults.SAVE_DEFAULT_RESOURCE;
+                }
+            };
+        } catch (NoSuchFieldException e) {
+            throw new NullPointerException(); // TODO
         }
-    };
+    }
 
 }

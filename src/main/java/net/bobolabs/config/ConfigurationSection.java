@@ -6,18 +6,17 @@
  * Copyright (C) 2023 Fabio Nebbia (https://glowy.bobolabs.net)
  * Copyright (C) 2023 Third party contributors
  *
- * BoboConfig is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * BoboConfig is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with BoboConfig.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package net.bobolabs.config;
@@ -28,7 +27,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
 /**
@@ -73,6 +71,7 @@ public interface ConfigurationSection {
      * Returns the value mapped to the specified {@code path},
      * or the given default value if no mapping is present.
      *
+     * @param <T>  the type whose associated value is to be cast to before returning.
      * @param path the path whose associated value is to be returned.
      * @param def  the default value to be returned if no mapping is
      *             present for the specified {@code path}.
@@ -219,6 +218,7 @@ public interface ConfigurationSection {
      * or {@code def} if no mapping is present.
      *
      * @param path the path whose associated byte value is to be returned.
+     * @param def  the default byte value to be returned if no mapping is present for the specified {@code path}.
      * @return the byte value associated to the specified path,
      * or the given default value if no mapping is present.
      * @throws ConfigurationTypeException if the value associated to the specified path
@@ -261,6 +261,7 @@ public interface ConfigurationSection {
      * or {@code def} if no mapping is present.
      *
      * @param path the path whose associated short value is to be returned.
+     * @param def  the default short value to be returned if no mapping is present for the specified {@code path}.
      * @return the short value associated to the specified path,
      * or the given default value if no mapping is present.
      * @throws ConfigurationTypeException if the value associated to the specified path
@@ -303,6 +304,7 @@ public interface ConfigurationSection {
      * or {@code def} if no mapping is present.
      *
      * @param path the path whose associated integer value is to be returned.
+     * @param def  the default integer value to be returned if no mapping is present for the specified {@code path}.
      * @return the integer value associated to the specified path,
      * or the given default value if no mapping is present.
      * @throws ConfigurationTypeException if the value associated to the specified path
@@ -345,6 +347,7 @@ public interface ConfigurationSection {
      * or {@code def} if no mapping is present.
      *
      * @param path the path whose associated long value is to be returned.
+     * @param def  the default long value to be returned if no mapping is present for the specified {@code path}.
      * @return the long value associated to the specified path,
      * or the given default value if no mapping is present.
      * @throws ConfigurationTypeException if the value associated to the specified path
@@ -387,6 +390,7 @@ public interface ConfigurationSection {
      * or {@code def} if no mapping is present.
      *
      * @param path the path whose associated float value is to be returned.
+     * @param def  the default float value to be returned if no mapping is present for the specified {@code path}.
      * @return the float value associated to the specified path,
      * or the given default value if no mapping is present.
      * @throws ConfigurationTypeException if the value associated to the specified path
@@ -429,6 +433,7 @@ public interface ConfigurationSection {
      * or {@code def} if no mapping is present.
      *
      * @param path the path whose associated double value is to be returned.
+     * @param def  the default double value to be returned if no mapping is present for the specified {@code path}.
      * @return the double value associated to the specified path,
      * or the given default value if no mapping is present.
      * @throws ConfigurationTypeException if the value associated to the specified path
@@ -471,6 +476,7 @@ public interface ConfigurationSection {
      * or {@code def} if no mapping is present.
      *
      * @param path the path whose associated boolean value is to be returned.
+     * @param def  the default boolean value to be returned if no mapping is present for the specified {@code path}.
      * @return the boolean value associated to the specified path,
      * or the given default value if no mapping is present.
      * @throws ConfigurationTypeException if the value associated to the specified path
@@ -512,6 +518,7 @@ public interface ConfigurationSection {
      * specified path, or {@code def} if no mapping is present.
      *
      * @param path the path whose string representation of the associated value is to be returned.
+     * @param def  the default string value to be returned if no mapping is present for the specified {@code path}.
      * @return the string representation of the value associated to the specified path,
      * or the given default string value if no mapping is present.
      * @since 2.0.0
@@ -539,7 +546,9 @@ public interface ConfigurationSection {
     /**
      * Returns the enum value in {@code enumClass} associated to the specified path.
      *
+     * @param <T>  the enum type whose constant is to be returned.
      * @param path the path whose associated enum constant in {@code enumClass} is to be returned.
+     * @param enumClass the Class object of the enum type from which to return a constant.
      * @return the enum constant in {@code enumClass} associated to the specified path.
      * @throws NullPointerException       if no mapping is present for the specified path.
      * @throws ConfigurationTypeException if {@code enumClass} has no constant that matches the mapped value.
@@ -552,7 +561,10 @@ public interface ConfigurationSection {
      * Returns the enum constant in {@code enumClass} associated to the specified path,
      * or {@code def} if no mapping is present.
      *
+     * @param <T>  the enum type whose constant is to be returned.
      * @param path the path whose associated enum constant in {@code enumClass} is to be returned.
+     * @param enumClass the Class object of the enum type from which to return a constant.
+     * @param def  the default enum constant in {@code enumClass} to be returned if no mapping is present for the specified {@code path}.
      * @return the enum constant in {@code enumClass} associated to the specified path,
      * or the given default constant value if no mapping is present.
      * @throws ConfigurationTypeException if {@code enumClass} has no constant
@@ -568,10 +580,10 @@ public interface ConfigurationSection {
      * Returns a new list which contains all the enum constants
      * in {@code enumClass} associated to the specified {@code path}.
      *
-     * @param path the path whose associated enum constants
-     *             in {@code enumClass} values are to be returned.
-     * @return a new list which contains all the enum constants in
-     * {@code enumClass} associated to the specified {@code path}.
+     * @param <T>  the enum type whose constant is to be returned.
+     * @param path the path whose associated enum constants in {@code enumClass} values are to be returned.
+     * @param enumClass the Class object of the enum type from which to return a constant.
+     * @return a new list which contains all the enum constants in {@code enumClass} associated to the specified {@code path}.
      * @throws NullPointerException           if no mapping is present for the specified path.
      * @throws ConfigurationListTypeException if the list contains any value that has no matching constant
      *                                        in {@code enumClass}, or any {@code null} value.

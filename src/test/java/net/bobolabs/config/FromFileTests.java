@@ -26,126 +26,34 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 
 import static com.google.common.truth.Truth.assertThat;
 import static net.bobolabs.config.TestUtils.listOf;
 import static org.junit.jupiter.api.Assertions.*;
 
-class InMemoryTests {
-
-    static final String EMPTY_FILE = "empty_config.yml";
+class FromFileTests {
 
     @TempDir
     Path directory;
 
     Configuration config;
 
-
     @BeforeEach
-    void beforeEach() {
-        File file = directory.resolve(EMPTY_FILE).toFile();
+    void beforeEach() throws IOException {
+        Path path = directory.resolve("config.yml");
+        try (InputStream in = this.getClass().getResourceAsStream("/test_config.yml")) {
+            Files.copy(Objects.requireNonNull(in), path, StandardCopyOption.REPLACE_EXISTING);
+        }
+
         config = ConfigurationLoader
-                .fromFile(file)
-                .setDefaultResource(EMPTY_FILE)
+                .fromFile(path.toFile())
                 .load();
-
-        // bytes
-        ConfigurationSection byteValues = config.createSection("bytes.values");
-        byteValues.set("ok", Byte.MIN_VALUE);
-        byteValues.set("cast", true);
-        ConfigurationSection byteLists = config.createSection("bytes.lists");
-        byteLists.set("ok", listOf((byte) 0, Byte.MIN_VALUE, Byte.MAX_VALUE));
-        byteLists.set("null", listOf((byte) 0, Byte.MIN_VALUE, Byte.MAX_VALUE, null));
-        byteLists.set("cast", listOf((byte) 0, Byte.MIN_VALUE, Byte.MAX_VALUE, new ArrayList<>()));
-
-        // shorts
-        ConfigurationSection shortValues = config.createSection("shorts.values");
-        shortValues.set("ok", Short.MIN_VALUE);
-        shortValues.set("cast", "");
-        ConfigurationSection shortLists = config.createSection("shorts.lists");
-        shortLists.set("ok", listOf((short) 0, Short.MIN_VALUE, Short.MAX_VALUE));
-        shortLists.set("null", listOf((short) 0, Short.MIN_VALUE, Short.MAX_VALUE, null));
-        shortLists.set("cast", listOf((short) 0, Short.MIN_VALUE, Short.MAX_VALUE, new ArrayList<>()));
-
-        // integers
-        ConfigurationSection intValues = config.createSection("ints.values");
-        intValues.set("ok", Integer.MIN_VALUE);
-        intValues.set("cast", new ArrayList<>());
-        ConfigurationSection intLists = config.createSection("ints.lists");
-        intLists.set("ok", listOf(0, Integer.MIN_VALUE, Integer.MAX_VALUE));
-        intLists.set("null", listOf(0, Integer.MIN_VALUE, Integer.MAX_VALUE, null));
-        intLists.set("cast", listOf(0, Integer.MIN_VALUE, Integer.MAX_VALUE, new ArrayList<>()));
-
-        // longs
-        ConfigurationSection longValues = config.createSection("longs.values");
-        longValues.set("ok", Long.MIN_VALUE);
-        longValues.set("cast", new HashMap<>());
-        ConfigurationSection longLists = config.createSection("longs.lists");
-        longLists.set("ok", listOf((long) 0, Long.MIN_VALUE, Long.MAX_VALUE));
-        longLists.set("null", listOf((long) 0, Long.MIN_VALUE, Long.MAX_VALUE, null));
-        longLists.set("cast", listOf((long) 0, Long.MIN_VALUE, Long.MAX_VALUE, ""));
-
-        // floats
-        ConfigurationSection floatsValues = config.createSection("floats.values");
-        floatsValues.set("ok", -Float.MAX_VALUE);
-        floatsValues.set("cast", "weeeee :D");
-        ConfigurationSection floatsLists = config.createSection("floats.lists");
-        floatsLists.set("ok", listOf(0.0f, -Float.MAX_VALUE, Float.MAX_VALUE));
-        floatsLists.set("null", listOf(0.0f, -Float.MAX_VALUE, Float.MAX_VALUE, null));
-        floatsLists.set("cast", listOf(0.0f, -Float.MAX_VALUE, Float.MAX_VALUE, "hello"));
-
-        // doubles
-        ConfigurationSection doubleValues = config.createSection("doubles.values");
-        doubleValues.set("ok", -Double.MAX_VALUE);
-        doubleValues.set("cast", new ArrayList<>());
-        ConfigurationSection doubleLists = config.createSection("doubles.lists");
-        doubleLists.set("ok", listOf(0.0D, -Double.MAX_VALUE, Double.MAX_VALUE));
-        doubleLists.set("null", listOf(0.0D, -Double.MAX_VALUE, Double.MAX_VALUE, null));
-        doubleLists.set("cast", listOf(0.0D, -Double.MAX_VALUE, Double.MAX_VALUE, listOf("another_list")));
-
-        // booleans
-        ConfigurationSection booleanValues = config.createSection("booleans.values");
-        booleanValues.set("ok", true);
-        booleanValues.set("cast", 34);
-        ConfigurationSection booleanLists = config.createSection("booleans.lists");
-        booleanLists.set("ok", listOf(true, false));
-        booleanLists.set("null", listOf(true, false, null));
-        booleanLists.set("cast", listOf(true, false, -0.6f));
-
-        // strings
-        ConfigurationSection stringValues = config.createSection("strings.values");
-        stringValues.set("ok", 3);
-        ConfigurationSection stringLists = config.createSection("strings.lists");
-        stringLists.set("ok", listOf("hello", "Stami", ""));
-        stringLists.set("null", listOf("hello", "Stami", "", null));
-
-        // enums
-        ConfigurationSection enumValues = config.createSection("enums.values");
-        enumValues.set("ok", TestEnum.TEST_1);
-        enumValues.set("cast", "TEST_3");
-        ConfigurationSection enumLists = config.createSection("enums.lists");
-        enumLists.set("ok", listOf(TestEnum.TEST_1, TestEnum.TEST_2));
-        enumLists.set("null", listOf(TestEnum.TEST_1, TestEnum.TEST_2, null));
-        enumLists.set("cast", listOf(TestEnum.TEST_1, TestEnum.TEST_2, 3));
-
-        // objects
-        ConfigurationSection objects = config.createSection("objects");
-        objects.set("list", listOf(0, "A", null, "", true, List.of(2, 1), null, new ArrayList<>(), new HashMap<>()));
-
-        // keys
-        ConfigurationSection keySection = config.createSection("keys");
-        keySection.set("i", 1);
-        ConfigurationSection sectionA = keySection.createSection("a");
-        ConfigurationSection sectionB = sectionA.createSection("b");
-        sectionB.set("c", 2);
-        sectionB.set("d", 3);
-        ConfigurationSection sectionE = sectionA.createSection("e");
-        sectionE.set("f", 4);
-        ConfigurationSection sectionG = keySection.createSection("g");
-        sectionG.set("h", 5);
     }
 
     @AfterEach

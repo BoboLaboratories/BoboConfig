@@ -6,18 +6,17 @@
  * Copyright (C) 2023 Fabio Nebbia (https://glowy.bobolabs.net)
  * Copyright (C) 2023 Third party contributors
  *
- * BoboConfig is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * BoboConfig is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with BoboConfig.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package net.bobolabs.config;
@@ -27,7 +26,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
@@ -120,9 +118,35 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
                 if (value == null) {
                     data.remove(path);
                 } else {
+                    // handle enums and enum lists
                     if (value instanceof Enum<?> e) {
                         value = e.name();
+                    } else if (value instanceof List<?> list) {
+                        List<Object> tmp = new ArrayList<>();
+                        for (Object obj : list) {
+                            Object res = obj;
+                            if (obj instanceof Enum<?> e) {
+                                res = e.name();
+                            }
+                            tmp.add(res);
+                        }
+                        value = tmp;
                     }
+
+                    if (value instanceof Byte b) {
+                        value = b.intValue();
+                    } else if (value instanceof List<?> list) {
+                        List<Object> tmp = new ArrayList<>();
+                        for (Object obj : list) {
+                            Object res = obj;
+                            if (obj instanceof Byte b) {
+                                res = b.intValue();
+                            }
+                            tmp.add(res);
+                        }
+                        value = tmp;
+                    }
+
                     data.put(path, value);
                 }
             } else {
@@ -333,65 +357,41 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public <T extends Enum<T>> @NotNull T getEnum(@NotNull String path, @NotNull Class<T> enumClass) {
-        T ret = getEnum(path, enumClass, null);
+        // lock not needed as get already worries about that
+        Object obj = get(path);
+        T ret = mapToEnum(enumClass, obj, null);
         if (ret == null) {
-            String message = NO_MAPPING_FOUND.apply(path);
-            throw new NullPointerException(message);
+            throw new ConfigurationTypeException(path, enumClass, obj);
         }
         return ret;
     }
 
     @Override
     public <T extends Enum<T>> @Nullable T getEnum(@NotNull String path, @NotNull Class<T> enumClass, @Nullable T def) {
-        // lock not needed as getString already worries about that and String is unmodifiable
-        String str = getString(path, null);
-        if (str == null) {
-            return def;
-        } else {
-            try {
-                return Enum.valueOf(enumClass, str);
-            } catch (IllegalArgumentException ignored) {
-                throw new ConfigurationTypeException(path, enumClass, str);
-            }
-        }
-    }
-
-    @Override
-    public @NotNull <T extends Enum<T>> List<@NotNull T> getEnumList(@NotNull String path, @NotNull Class<T> enumClass) {
-        // lock not needed as getStringList already worries about that and returns a new collection
-        List<T> ret = new ArrayList<>();
-        List<Object> list = getList(path);
-        for (Object obj : list) {
-            if (obj == null) {
-                throw new ConfigurationListTypeException(path, enumClass, list, null);
-            } else if (obj instanceof String str) {
-                try {
-                    T entry = Enum.valueOf(enumClass, str);
-                    ret.add(entry);
-                } catch (IllegalArgumentException ignored) {
-                    throw new ConfigurationListTypeException(path, enumClass, list, str);
-                }
-            } else {
-                throw new ConfigurationListTypeException(path, enumClass, list, obj);
-            }
+        // lock not needed as get already worries about that
+        Object obj = get(path, null);
+        T ret = mapToEnum(enumClass, obj, def);
+        if (ret == null && obj != null) {
+            throw new ConfigurationTypeException(path, enumClass, obj);
         }
         return ret;
     }
-    
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ConfigurationSectionImpl that = (ConfigurationSectionImpl) o;
-        if (!data.equals(that.data)) return false;
-        return root.equals(that.root);
-    }
 
     @Override
-    public int hashCode() {
-        int result = data.hashCode();
-        result = 31 * result + root.hashCode();
-        return result;
+    @SuppressWarnings("unchecked")
+    public @NotNull <T extends Enum<T>> List<@NotNull T> getEnumList(@NotNull String path, @NotNull Class<T> enumClass) {
+        // lock not needed as getList already worries about that and returns a new collection
+        List<Object> objs = getList(path);
+        List<T> ret = new ArrayList<>();
+        for (Object obj : objs) {
+            T entry = mapToEnum(enumClass, obj, null);
+            if (entry != null) {
+                ret.add(entry);
+            } else {
+                throw new ConfigurationListTypeException(path, enumClass, objs, obj);
+            }
+        }
+        return ret;
     }
 
 
@@ -405,6 +405,29 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @NotNull Configuration getRoot() {
         return root;
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T extends Enum<T>> @Nullable T mapToEnum(@NotNull Class<T> enumClass, @Nullable Object obj, @Nullable T def) {
+        T ret = null;
+        if (obj == null) {
+            if (def != null) {
+                ret = def;
+            }
+        } else if (obj instanceof String str) {
+            try {
+                return Enum.valueOf(enumClass, str);
+            } catch (IllegalArgumentException ignored) {
+                // simply return null
+            }
+        } else {
+            try {
+                ret = (T) obj;
+            } catch (ClassCastException ignored) {
+                // simply return null
+            }
+        }
+        return ret;
     }
 
     @SuppressWarnings("unchecked")

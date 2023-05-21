@@ -6,44 +6,94 @@
  * Copyright (C) 2023 Fabio Nebbia (https://glowy.bobolabs.net)
  * Copyright (C) 2023 Third party contributors
  *
- * BoboConfig is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * BoboConfig is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with BoboConfig.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package net.bobolabs.config;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Path;
 
-/*
- * - [ ] Path - automaticamente testato, altrimenti non farebbe il load
- * - [ ] Default resource - come path
- * - [ ] Save default resource - come path
- * - [ ] AutoSave resource - come path
- *
- * */
+import static org.junit.jupiter.api.Assertions.*;
 
-public class ConfigurationManagerTest {
+
+class ConfigurationManagerTest {
 
     @TempDir
     static Path directory;
 
+    static ConfigurationManager<TestConfigs> manager;
+
+    @BeforeAll
+    static void beforeAll() {
+        manager = new ConfigurationManager<>(directory.toFile(), TestConfigs.class);
+    }
+
     @Test
-    void test() {
-        ConfigurationManager<TestConfigs> manager = new ConfigurationManager<>(directory.toFile(), TestConfigs.class);
-        manager.loadAll();
+    void testDefault() {
+        Config config = manager.makeConfig(TestConfigs.DEFAULT);
+        assertEquals("default.yml", config.path());
+        assertEquals("default.yml", config.defaultResource());
+        assertTrue(config.saveDefaultResource());
+        assertFalse(config.autoSave());
+    }
+
+    @Test
+    void testDefaultResource() {
+        Config config = manager.makeConfig(TestConfigs.DEFAULT_RESOURCE);
+        assertEquals("default_resource.yml", config.path());
+        assertEquals("some_resource.yml", config.defaultResource());
+        assertTrue(config.saveDefaultResource());
+        assertFalse(config.autoSave());
+    }
+
+    @Test
+    void testSaveDefaultResource() {
+        Config config = manager.makeConfig(TestConfigs.SAVE_DEFAULT_RESOURCE);
+        assertEquals("save_default_resource.yml", config.path());
+        assertEquals("save_default_resource.yml", config.defaultResource());
+        assertFalse(config.saveDefaultResource());
+        assertFalse(config.autoSave());
+    }
+
+    @Test
+    void testAutoSave() {
+        Config config = manager.makeConfig(TestConfigs.AUTO_SAVE);
+        assertEquals("auto_save.yml", config.path());
+        assertEquals("auto_save.yml", config.defaultResource());
+        assertTrue(config.saveDefaultResource());
+        assertTrue(config.autoSave());
+    }
+
+
+    enum TestConfigs implements ConfigurationDescription {
+
+        DEFAULT,
+
+        @Config(path = "some_path.yml")
+        PATH,
+
+        @Config(defaultResource = "some_resource.yml")
+        DEFAULT_RESOURCE,
+
+        @Config(saveDefaultResource = false)
+        SAVE_DEFAULT_RESOURCE,
+
+        @Config(autoSave = true)
+        AUTO_SAVE
 
     }
 

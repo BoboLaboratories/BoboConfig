@@ -1,99 +1,181 @@
 bytes:
   values:
-    ok: 1
+    ok: -128
     cast: true
   lists:
-    ok: [ 0, -128, 127 ]
-    null: [ 0, -128, 127, null ]
-    cast: [ 0, -128, 127, [ ] ]
-
+    ok:
+      - 0
+      - -128
+      - 127
+    'null':
+      - 0
+      - -128
+      - 127
+      - null
+    cast:
+      - 0
+      - -128
+      - 127
+      - [ ]
 shorts:
   values:
     ok: -32768
-    cast: ""
+    cast: ''
   lists:
-    ok: [ 0, -32768, 32767 ]
-    null: [ 0, -32768, 32767, null ]
-    cast: [ 0, -32768, 32767, true ]
-
+    ok:
+      - 0
+      - -32768
+      - 32767
+    'null':
+      - 0
+      - -32768
+      - 32767
+      - null
+    cast:
+      - 0
+      - -32768
+      - 32767
+      - [ ]
 ints:
   values:
     ok: -2147483648
     cast: [ ]
   lists:
-    ok: [ 0, -2147483648, 2147483647 ]
-    null: [ 0, -2147483648, 2147483647, null ]
-    cast: [ 0, -2147483648, 2147483647, { } ]
-
+    ok:
+      - 0
+      - -2147483648
+      - 2147483647
+    'null':
+      - 0
+      - -2147483648
+      - 2147483647
+      - null
+    cast:
+      - 0
+      - -2147483648
+      - 2147483647
+      - [ ]
 longs:
   values:
-    ok: -1
+    ok: -9223372036854775808
     cast: { }
   lists:
-    ok: [ 0, -9223372036854775808, 9223372036854775807 ]
-    null: [ 0, -9223372036854775808, 9223372036854775807, null ]
-    cast: [ 0, -9223372036854775808, 9223372036854775807, "" ]
-
+    ok:
+      - 0
+      - -9223372036854775808
+      - 9223372036854775807
+    'null':
+      - 0
+      - -9223372036854775808
+      - 9223372036854775807
+      - null
+    cast:
+      - 0
+      - -9223372036854775808
+      - 9223372036854775807
+      - ''
 floats:
   values:
-    ok: 3.4
-    cast: "weeeee :D"
+    ok: -3.4028235E38
+    cast: weeeee :D
   lists:
-    ok: [ 0, -3.4028235E38, 3.4028235E38 ]
-    null: [ 0, 3.4028235E38, null ]
-    cast: [ 0, 3.4028235E38, "hello" ]
-
+    ok:
+      - 0.0
+      - -3.4028235E38
+      - 3.4028235E38
+    'null':
+      - 0.0
+      - -3.4028235E38
+      - 3.4028235E38
+      - null
+    cast:
+      - 0.0
+      - -3.4028235E38
+      - 3.4028235E38
+      - hello
 doubles:
   values:
-    ok: 1.7976931348623157E308
+    ok: -1.7976931348623157E308
     cast: [ ]
   lists:
-    ok: [ 0, -1.7976931348623157E308, 1.7976931348623157E308 ]
-    null: [ 0, -1.7976931348623157E308, 1.7976931348623157E308, null ]
-    cast: [ 0, -1.7976931348623157E308, 1.7976931348623157E308, [ another_list ] ]
-
+    ok:
+      - 0.0
+      - -1.7976931348623157E308
+      - 1.7976931348623157E308
+    'null':
+      - 0.0
+      - -1.7976931348623157E308
+      - 1.7976931348623157E308
+      - null
+    cast:
+      - 0.0
+      - -1.7976931348623157E308
+      - 1.7976931348623157E308
+      - - another_list
 booleans:
   values:
     ok: true
     cast: 34
   lists:
-    ok: [ true, false ]
-    null: [ true, false, null ]
-    cast: [ true, false, -0.6 ]
-
+    ok:
+      - true
+      - false
+    'null':
+      - true
+      - false
+      - null
+    cast:
+      - true
+      - false
+      - -0.6
 strings:
   values:
     ok: 3
   lists:
-    ok: [ "hello", "Stami", "" ]
-    null: [ "hello", "", null ]
-
+    ok:
+      - hello
+      - Stami
+      - ''
+    'null':
+      - hello
+      - Stami
+      - ''
+      - null
 enums:
   values:
     ok: TEST_1
     cast: TEST_3
   lists:
-    ok: [ TEST_1, TEST_2 ]
-    null: [ TEST_1, TEST_2, null ]
-    cast: [ TEST_1, TEST_2, 3 ]
-
+    ok:
+      - TEST_1
+      - TEST_2
+    'null':
+      - TEST_1
+      - TEST_2
+      - null
+    cast:
+      - TEST_1
+      - TEST_2
+      - 3
 objects:
   list:
     - 0
     - A
-    -
-    - ""
-    - true
-    - [ 2, 1 ]
     - null
-
+    - ''
+    - true
+    - - 2
+      - 1
+    - null
+    - [ ]
+    - { }
 keys:
+  i: 1
   a:
     b:
-      c: 1
-      d:
+      c: 2
+      d: 3
     e:
-      f: 2
+      f: 4
   g:
-    h: 3
-  i: 4
+    h: 5

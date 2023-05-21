@@ -21,7 +21,14 @@
 
 package net.bobolabs.config;
 
-public enum TestEnum {
-    TEST_1,
-    TEST_2
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+class TestUtils {
+
+    static List<Object> listOf(Object... objects) {
+        return new ArrayList<>(Arrays.asList(objects));
+    }
+
 }

@@ -6,21 +6,22 @@
  * Copyright (C) 2023 Fabio Nebbia (https://glowy.bobolabs.net)
  * Copyright (C) 2023 Third party contributors
  *
- * BoboConfig is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * BoboConfig is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with BoboConfig.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package net.bobolabs.config;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -46,9 +47,9 @@ public @interface Config {
      * If not specified, the path is automatically computed based on annotation {@link Enum#name() name()}.
      *
      * @return the {@link Configuration}'s path, relative to the {@link ConfigurationManager}'s directory.
-     * @since  2.0.0
+     * @since 2.0.0
      */
-    String path() default ConfigDefaults.PATH;
+    @NotNull String path() default ConfigDefaults.PATH;
 
 
     /**
@@ -57,9 +58,9 @@ public @interface Config {
      * If not specified, {@link #path()} is used instead.
      *
      * @return the {@link Configuration}'s default resource path inside jar resources.
-     * @since  2.0.0
+     * @since 2.0.0
      */
-    String defaultResource() default ConfigDefaults.RESOURCE;
+    @NotNull String defaultResource() default ConfigDefaults.RESOURCE;
 
 
     /**
@@ -68,7 +69,7 @@ public @interface Config {
      * Auto save is disabled by default.
      *
      * @return whether the associated {@link Configuration} should be loaded with enabled auto save.
-     * @since  2.0.0
+     * @since 2.0.0
      */
     boolean autoSave() default ConfigDefaults.AUTO_SAVE;
 
@@ -80,8 +81,8 @@ public @interface Config {
      * Disabled by default.
      *
      * @return whether the associated {@link Configuration} should be saved from the default resource if the file is
-     *         missing when {@link ConfigurationManager#load(Enum) ConfigurationManager.load()} variants are called.
-     * @since  2.0.0
+     * missing when {@link ConfigurationManager#load(Enum) ConfigurationManager.load()} variants are called.
+     * @since 2.0.0
      */
     boolean saveDefaultResource() default ConfigDefaults.SAVE_DEFAULT_RESOURCE;
 

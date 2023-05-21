@@ -1,0 +1,35 @@
+bytes:
+  value: 2
+  list: [ 3, 4 ]
+
+shorts:
+  value: 2
+  list: [ 3, 4 ]
+
+ints:
+  value: 2
+  list: [ 3, 4 ]
+
+longs:
+  value: 2
+  list: [ 3, 4 ]
+
+floats:
+  value: 2
+  list: [ 3.0, 4.0 ]
+
+doubles:
+  value: 2
+  list: [ 3.0, 4.0 ]
+
+booleans:
+  value: false
+  list: [ 3, 4 ]
+
+strings:
+  value: "good bye"
+  list: [ 3, 4 ]
+
+enums:
+  value: 2
+  list: [ 3, 4 ]
