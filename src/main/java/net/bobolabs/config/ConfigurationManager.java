@@ -28,10 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.util.EnumMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
@@ -43,7 +40,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  *
  * @param <T> an enum that must implement {@link ConfigurationDescription} which is used to
  *            instruct the configuration manager on how to load configuration files.
- * @since     2.0.0
+ * @since 2.0.0
  */
 // A Glowy piace :D
 public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescription> {
@@ -59,7 +56,7 @@ public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescrip
      * Construct a new configuration managers which loads configurations from the
      * specified {@code directory} using the given {@code description} enum.
      *
-     * @param directory   the directory inside which configuration files are to be loaded.
+     * @param directory the directory inside which configuration files are to be loaded.
      * @param description the configuration description enum which provides instruction
      *                    on how configuration files are to be loaded.
      * @since             2.0.0
@@ -81,31 +78,7 @@ public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescrip
         try {
             for (Field field : clazz.getFields()) {
                 T key = Enum.valueOf(clazz, field.getName());
-
-                // Retrieve annotation data
-                Config annotation = field.getDeclaredAnnotation(Config.class);
-                if (annotation == null) {
-                    annotation = DEFAULT_CONFIG_ANNOTATION;
-                }
-
-                // Compute path
-                String path = annotation.path();
-                path = path.isEmpty() ? key.name() + ".yml" : path;
-                // path = normalizer.apply(path);
-
-                // Compute default resource
-                String defaultResource = annotation.defaultResource();
-                // TODO defaultResource = Strings.isNullOrEmpty(defaultResource) ? path : defaultResource;
-
-                // Build configuration
-                Configuration configuration = ConfigurationLoader
-                        .fromFile(directory, path)
-                        .setDefaultResource(annotation.defaultResource())
-                        .setDefaultResource(defaultResource)
-                        .autoSave(annotation.autoSave())
-                        .load();
-
-                configurations.put(key, configuration);
+                load(key);
             }
         } finally {
             lock.writeLock().unlock();
@@ -117,10 +90,43 @@ public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescrip
      * Loads the specified {@link Configuration}, if not already loaded; then returns it.
      *
      * @param configuration the configuration to be loaded.
-     * @since 2.0.0
+     * @since               2.0.0
      */
     public @NotNull Configuration load(@NotNull T configuration) {
-        return null;
+        lock.writeLock().lock();
+        try {
+            // Retrieve annotation data
+            Field field = clazz.getField(configuration.name());
+            Config annotation = field.getDeclaredAnnotation(Config.class);
+            if (annotation == null) {
+                annotation = DEFAULT_CONFIG_ANNOTATION;
+            }
+
+            // Compute path
+            String path = annotation.path();
+            path = path.isEmpty() ? configuration.name() + ".yml" : path;
+            // path = normalizer.apply(path);
+
+            // Compute default resource
+            String defaultResource = annotation.defaultResource();
+            // TODO defaultResource = Strings.isNullOrEmpty(defaultResource) ? path : defaultResource;
+
+            // Build configuration
+            Configuration config = ConfigurationLoader
+                    .fromFile(directory, path)
+                    .setDefaultResource(annotation.defaultResource())
+                    .setDefaultResource(defaultResource)
+                    .autoSave(annotation.autoSave())
+                    .load();
+
+            configurations.put(configuration, config);
+            return config;
+
+        } catch (NoSuchFieldException e) {
+            throw new ConfigurationException("could not load configuration " + configuration, e);
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
 
@@ -128,10 +134,18 @@ public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescrip
      * Unloads the specified {@link Configuration}, if already loaded.
      *
      * @param configuration the configuration to be unloaded.
-     * @since 2.0.0
+     * @since               2.0.0
      */
     public void unload(@NotNull T configuration) {
-
+        lock.writeLock().lock();
+        try {
+            Optional<Configuration> config = getOptional(configuration);
+            if (config.isPresent()) {
+                configurations.remove(configuration);
+            }
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
 
@@ -157,10 +171,11 @@ public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescrip
      * {@code configurationManager.get(CONFIG).reload();} except it also returns the configuration itself.
      *
      * @param configuration the configuration to be reloaded.
-     * @since 2.0.0
+     * @since               2.0.0
      */
     public @NotNull Configuration reload(@NotNull T configuration) {
-        return null;
+        unload(configuration);
+        return load(configuration);
     }
 
 
@@ -170,8 +185,20 @@ public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescrip
      * @since 2.0.0
      */
     public void reloadAll() {
-        unloadAll();  //           TODO
-        loadAll();    // TODO NOT AS SIMPLE AS THAT
+        lock.writeLock().lock();
+        try {
+            Set<T> configs = new HashSet<>();
+            for (T key : configurations.keySet()) {
+                configs.add(key);
+                unload(key);
+            }
+
+            for (T config : configs) {
+                load(config);
+            }
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
 
@@ -181,13 +208,22 @@ public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescrip
      * Note that this method has the same effect as {@code configurationManager.get(CONFIG).save();}
      * except it also returns the configuration itself.
      *
-     * @param  configuration the configuration to be reloaded.
-     * @throws IllegalStateException if the specified configuration is not
-     *                               loaded when this method is invoked.
-     * @since  2.0.0
+     * @param configuration the configuration to be reloaded.
+     * @throws              IllegalStateException if the specified configuration is not
+     *                                            loaded when this method is invoked.
+     * @since               2.0.0
      */
     public @NotNull Configuration save(@NotNull T configuration) {
-        return null;
+        lock.writeLock().lock();
+        try {
+            Configuration config = get(configuration);
+            config.save();
+            return config;
+        } catch (NullPointerException e) {
+            throw new IllegalStateException("the specified configuration was not loaded");
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
 
@@ -197,7 +233,14 @@ public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescrip
      * @since 2.0.0
      */
     public void saveAll() {
-        // TODO
+        lock.writeLock().lock();
+        try {
+            for (T key : configurations.keySet()) {
+                save(key);
+            }
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
 
@@ -205,15 +248,14 @@ public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescrip
      * Returns the specified optional {@link Configuration}, if loaded;
      * or an empty {@link Optional} otherwise.
      *
-     * @param  configuration the optional configuration that is to be returned if loaded.
-     * @return the specified optional {@link Configuration}, if loaded.
-     * @since  2.0.0
+     * @param configuration the optional configuration that is to be returned if loaded.
+     * @return              the specified optional {@link Configuration}, if loaded.
+     * @since               2.0.0
      */
     public @NotNull Optional<Configuration> getOptional(@NotNull T configuration) {
         lock.readLock().lock();
         try {
-            // return configurations.get(configuration);
-            return null;
+            return Optional.ofNullable(configurations.get(configuration));
         } finally {
             lock.readLock().unlock();
         }
@@ -229,8 +271,7 @@ public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescrip
      * @since               2.0.0
      */
     public @NotNull Configuration get(@NotNull T configuration, @NotNull Configuration def) {
-        Configuration config = null; //getOptional(configuration);
-        return config != null ? config : def;
+        return getOptional(configuration).orElse(def);
     }
 
 
@@ -245,8 +286,14 @@ public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescrip
      * @since               2.0.0
      */
     public @NotNull Configuration get(@NotNull T configuration, @NotNull T def) {
-        Configuration config = null; // getOptionalConfiguration(configuration);
-        return config != null ? config : get(def);
+        lock.readLock().lock();
+        try {
+            Optional<Configuration> config = getOptional(configuration);
+            Configuration defaultConfig = get(def);
+            return config.orElse(defaultConfig);
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
 
@@ -254,14 +301,14 @@ public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescrip
      * Returns the specified {@link Configuration} if loaded; otherwise throws {@link NullPointerException}.
      *
      * @param configuration the configuration that is to be returned.
-     * @return              the specified {@link Configuration} if loaded.
-     * @throws              NullPointerException if the specified configuration is not loaded when this method is invoked.
-     * @since               2.0.0
+     * @return the specified {@link Configuration} if loaded.
+     * @throws NullPointerException if the specified configuration is not loaded when this method is invoked.
+     * @since 2.0.0
      */
     public @NotNull Configuration get(@NotNull T configuration) {
         // getOptionalConfiguration already acquires lock
-        Configuration config = null; //getOptionalConfiguration(configuration);
-        return Objects.requireNonNull(config);
+        return getOptional(configuration).orElseThrow(() ->
+                new NullPointerException("the specified configuration was not loaded"));
     }
 
 

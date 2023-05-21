@@ -36,4 +36,8 @@ public class ConfigurationException extends RuntimeException {
         super(message);
     }
 
+    public ConfigurationException(@NotNull String message, @NotNull Throwable cause) {
+        super(message, cause);
+    }
+
 }
