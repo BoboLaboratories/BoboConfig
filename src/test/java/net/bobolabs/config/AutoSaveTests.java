@@ -46,11 +46,11 @@ class AutoSaveTests {
 
     @Test
     void autoSaveWorks() throws IOException, URISyntaxException {
-        config = ConfigurationBuilder
+        config = ConfigurationLoader
                 .fromFile(directory.toFile(), FILE_NAME)
                 .setDefaultResource(FILE_NAME)
                 .autoSave(true)
-                .build();
+                .load();
 
         config.set("values.byte", (byte) 1);
         config.set("values.short", (short) 2);

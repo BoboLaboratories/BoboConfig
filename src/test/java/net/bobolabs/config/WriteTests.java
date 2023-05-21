@@ -22,7 +22,6 @@
 
 package net.bobolabs.config;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -51,10 +50,10 @@ class WriteTests {
 
     @BeforeEach
     void beforeEach() {
-        config = ConfigurationBuilder
+        config = ConfigurationLoader
                 .fromFile(directory.toFile(), FILE_NAME)
                 .setDefaultResource(FILE_NAME)
-                .build();
+                .load();
 
         config.set("values.byte", (byte) 1);
         config.set("values.short", (short) 2);
@@ -89,7 +88,7 @@ class WriteTests {
 
         // there should be no keys left because changes were not written on
         // disk therefore the file that was reloaded was supposed to be empty
-        assertEquals(Collections.emptySet(), config.getKeys(TraversalMode.BRANCHES));
+        assertEquals(Collections.emptySet(), config.getKeys(TraversalMode.ALL));
     }
 
     @Test

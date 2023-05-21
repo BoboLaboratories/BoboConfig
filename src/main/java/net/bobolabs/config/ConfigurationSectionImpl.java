@@ -37,16 +37,16 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     static {
         // numeric types
-        mappers.put(Byte.class,     o -> (o instanceof Number n) ? n.byteValue() : null);
-        mappers.put(Short.class,    o -> (o instanceof Number n) ? n.shortValue() : null);
-        mappers.put(Integer.class,  o -> (o instanceof Number n) ? n.intValue() : null);
-        mappers.put(Long.class,     o -> (o instanceof Number n) ? n.longValue() : null);
-        mappers.put(Float.class,    o -> (o instanceof Number n) ? n.floatValue() : null);
-        mappers.put(Double.class,   o -> (o instanceof Number n) ? n.doubleValue() : null);
+        mappers.put(Byte.class, o -> (o instanceof Number n) ? n.byteValue() : null);
+        mappers.put(Short.class, o -> (o instanceof Number n) ? n.shortValue() : null);
+        mappers.put(Integer.class, o -> (o instanceof Number n) ? n.intValue() : null);
+        mappers.put(Long.class, o -> (o instanceof Number n) ? n.longValue() : null);
+        mappers.put(Float.class, o -> (o instanceof Number n) ? n.floatValue() : null);
+        mappers.put(Double.class, o -> (o instanceof Number n) ? n.doubleValue() : null);
 
         // special types
-        mappers.put(Boolean.class,  o -> (o instanceof Boolean b) ? b : null);
-        mappers.put(String.class,   o -> (o != null) ? Objects.toString(o) : null);
+        mappers.put(Boolean.class, o -> (o instanceof Boolean b) ? b : null);
+        mappers.put(String.class, o -> (o != null) ? Objects.toString(o) : null);
     }
 
     private static final UnaryOperator<String> NO_MAPPING_FOUND = path -> "no mapping found for path `" + path + "` in configuration section";
@@ -415,7 +415,7 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @SuppressWarnings("unchecked")
     @Contract("_, !null, _ -> !null; _, _, true -> !null")
-    private  <T> @Nullable T get(@NotNull String path, @Nullable T def, boolean throwIfNull) {
+    private <T> @Nullable T get(@NotNull String path, @Nullable T def, boolean throwIfNull) {
         readLock().lock();
         try {
             Object ret = null;
@@ -439,7 +439,9 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
     @SuppressWarnings("unchecked")
     private @NotNull <T> Function<Object, @Nullable T> getMapperFor(@NotNull Class<T> type) {
         return (Function<Object, @Nullable T>) mappers.get(type);
-    }    private <T> @NotNull T getType(@NotNull String path, @NotNull Class<T> type) {
+    }
+
+    private <T> @NotNull T getType(@NotNull String path, @NotNull Class<T> type) {
         Object obj = get(path);
         T ret = getMapperFor(type).apply(obj);
         if (ret == null) {

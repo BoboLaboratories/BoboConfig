@@ -28,12 +28,12 @@ import org.junit.jupiter.api.io.TempDir;
 import java.nio.file.Path;
 
 /*
-* - [ ] Path - automaticamente testato, altrimenti non farebbe il load
-* - [ ] Default resource - come path
-* - [ ] Save default resource - come path
-* - [ ] AutoSave resource - come path
-*
-* */
+ * - [ ] Path - automaticamente testato, altrimenti non farebbe il load
+ * - [ ] Default resource - come path
+ * - [ ] Save default resource - come path
+ * - [ ] AutoSave resource - come path
+ *
+ * */
 
 public class ConfigurationManagerTest {
 
@@ -43,7 +43,7 @@ public class ConfigurationManagerTest {
     @Test
     void test() {
         ConfigurationManager<TestConfigs> manager = new ConfigurationManager<>(directory.toFile(), TestConfigs.class);
-        manager.enable();
+        manager.loadAll();
 
     }
 

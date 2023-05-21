@@ -22,6 +22,16 @@
 
 package net.bobolabs.config;
 
+
+/**
+ * <h2>Description</h2>
+ * <p>
+ * An interface which tells that an enum is used as a manner
+ * of instructing a {@link ConfigurationManager} on how to
+ * load an arbitrary number of configuration files.
+ *
+ * @since 2.0.0
+ */
 public interface ConfigurationDescription {
 
 }

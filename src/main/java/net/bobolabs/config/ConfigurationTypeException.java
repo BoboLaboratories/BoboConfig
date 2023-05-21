@@ -25,6 +25,12 @@ package net.bobolabs.config;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+
+/**
+ * <h2>Description</h2>
+ *
+ * @since 2.0.0
+ */
 public final class ConfigurationTypeException extends ConfigurationException {
 
     ConfigurationTypeException(@NotNull String path, @NotNull Class<?> requestedType, @Nullable Object value) {

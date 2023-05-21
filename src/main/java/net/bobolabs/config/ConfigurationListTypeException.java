@@ -27,6 +27,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+
+/**
+ * <h2>Description</h2>
+ *
+ * @since 2.0.0
+ */
 public final class ConfigurationListTypeException extends ConfigurationException {
 
     ConfigurationListTypeException(@NotNull String path,

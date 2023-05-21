@@ -48,10 +48,10 @@ class InMemoryTests {
         String file = "test_config.yml";
         File configFile = directory.resolve(file).toFile();
 
-        config = ConfigurationBuilder
+        config = ConfigurationLoader
                 .fromFile(configFile)
                 .setDefaultResource(file)
-                .build();
+                .load();
     }
 
     @Test
@@ -248,8 +248,8 @@ class InMemoryTests {
         assertEquals(Collections.emptySet(), emptySection.getKeys(TraversalMode.ROOT));
 
         // branches traversal
-        assertEquals(Set.of("a", "a.b", "a.b.c", "a.b.d", "a.e", "a.e.f", "g", "g.h", "i"), section.getKeys(TraversalMode.BRANCHES));
-        assertEquals(Collections.emptySet(), emptySection.getKeys(TraversalMode.BRANCHES));
+        assertEquals(Set.of("a", "a.b", "a.b.c", "a.b.d", "a.e", "a.e.f", "g", "g.h", "i"), section.getKeys(TraversalMode.ALL));
+        assertEquals(Collections.emptySet(), emptySection.getKeys(TraversalMode.ALL));
 
         // leaves traversal
         assertEquals(Set.of("a.b.c", "a.b.d", "a.e.f", "g.h", "i"), section.getKeys(TraversalMode.LEAVES));

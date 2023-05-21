@@ -30,6 +30,19 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+/**
+ * <h2>Description</h2>
+ * <p>
+ * A configuration section is anything inside a configuration that is not a primitive or list value
+ * (i.e. any path that does not lead to a primitive or list value leads to a configuration section).<br>
+ * <p>
+ * A {@link Configuration} is a configuration section as well as it may contain multiple subsections
+ * and can never contain just a single primitive or list value.<br>
+ * <p>
+ * Any operation performed on a configuration section is thread-safe.
+ *
+ * @since 2.0.0
+ */
 public interface ConfigurationSection {
 
 
@@ -38,9 +51,9 @@ public interface ConfigurationSection {
      * for the specified {@code path}, {@code false} otherwise.
      *
      * @param path the path whose presence in this configuration section is to be tested.
-     * @return     {@code true} if this configuration section contains a mapping
-     *             for the specified {@code path}, {@code false} otherwise.
-     * @since      2.0.0
+     * @return {@code true} if this configuration section contains a mapping
+     * for the specified {@code path}, {@code false} otherwise.
+     * @since 2.0.0
      */
     boolean contains(@NotNull String path);
 
@@ -49,9 +62,9 @@ public interface ConfigurationSection {
      * Returns the value mapped to the specified {@code path}.
      *
      * @param path the path whose associated value is to be returned.
-     * @return     the value mapped to the specified {@code path}.
-     * @throws     NullPointerException if no mapping is present for the specified path.
-     * @since      2.0.0
+     * @return the value mapped to the specified {@code path}.
+     * @throws NullPointerException if no mapping is present for the specified path.
+     * @since 2.0.0
      */
     @NotNull
     Object get(@NotNull String path);
@@ -64,27 +77,13 @@ public interface ConfigurationSection {
      * @param path the path whose associated value is to be returned.
      * @param def  the default value to be returned if no mapping is
      *             present for the specified {@code path}.
-     * @return     the value mapped to the specified {@code path},
-     *             or the given default value if no mapping is present.
-     * @since      2.0.0
+     * @return the value mapped to the specified {@code path},
+     * or the given default value if no mapping is present.
+     * @since 2.0.0
      */
     @Nullable
     @Contract("_, !null -> !null")
     <T> T get(@NotNull String path, @Nullable T def);
-
-
-//    /**
-//     * Returns the value mapped to the specified {@code path}, if present;
-//     * otherwise a new mapping from {@code path} to {@code value}
-//     * is established and {@code value} is returned.
-//     *
-//     * @param path  the path whose associated value is to be returned (and possibly set).
-//     * @param value the value to be mapped to {@code path} if no mapping is present.
-//     * @return      the value mapped to the specified {@code path},
-//     *              or {@code value} if no mapping is present.
-//     * @since       2.0.0
-//     */
-//    @NotNull <T> T getOrSet(@NotNull String path, @NotNull T value);
 
 
     /**
@@ -92,10 +91,10 @@ public interface ConfigurationSection {
      * to {@code path}, including {@code null} values.
      *
      * @param path the path whose associated values are to be returned.
-     * @return     a new list which contains all the values mapped to
-     *             {@code path}, including {@code null} values.
-     * @throws     NullPointerException if no mapping is present for the specified path.
-     * @since      2.0.0
+     * @return a new list which contains all the values mapped to
+     * {@code path}, including {@code null} values.
+     * @throws NullPointerException if no mapping is present for the specified path.
+     * @since 2.0.0
      */
     @NotNull
     @Contract("_ -> new")
@@ -110,7 +109,7 @@ public interface ConfigurationSection {
      *
      * @param path  the path to be mapped to the given value.
      * @param value the value to be mapped to the specified path.
-     * @since       2.0.0
+     * @since 2.0.0
      */
     void set(@NotNull String path, @Nullable Object value);
 
@@ -120,7 +119,7 @@ public interface ConfigurationSection {
      * {@code path} is completely removed from this section.
      *
      * @param path the path whose mapping is to be removed.
-     * @since      2.0.0
+     * @since 2.0.0
      */
     void unset(@NotNull String path);
 
@@ -129,9 +128,9 @@ public interface ConfigurationSection {
      * Creates a new configuration section mapped to the specified {@code path} and returns it.
      *
      * @param path the path to which the new configuration section is to be mapped.
-     * @return     the newly created configuration section.
-     * @throws     IllegalArgumentException if there's already any mapping for the specified {@code path}.
-     * @since      2.0.0
+     * @return the newly created configuration section.
+     * @throws IllegalArgumentException if there's already any mapping for the specified {@code path}.
+     * @since 2.0.0
      */
     @NotNull
     ConfigurationSection createSection(@NotNull String path);
@@ -144,10 +143,10 @@ public interface ConfigurationSection {
      *
      * @param path the path whose associated configuration section is to be returned,
      *             or to which the new configuration section is to be mapped.
-     * @return     the pre-existing or the newly created configuration section.
-     * @throws     ConfigurationTypeException if the specified path is already associated
-     *                                        with anything but a configuration section.
-     * @since      2.0.0
+     * @return the pre-existing or the newly created configuration section.
+     * @throws ConfigurationTypeException if the specified path is already associated
+     *                                    with anything but a configuration section.
+     * @since 2.0.0
      */
     @NotNull
     ConfigurationSection getOrCreateSection(@NotNull String path);
@@ -157,11 +156,11 @@ public interface ConfigurationSection {
      * Returns the configuration section mapped to the specified {@code path}.
      *
      * @param path the path whose associated configuration section is to be returned.
-     * @return     the configuration section associated to the specified path.
-     * @throws     NullPointerException       if no mapping is present for the specified path.
-     * @throws     ConfigurationTypeException if the specified path is already associated
-     *                                        with anything but a configuration section.
-     * @since      2.0.0
+     * @return the configuration section associated to the specified path.
+     * @throws NullPointerException       if no mapping is present for the specified path.
+     * @throws ConfigurationTypeException if the specified path is already associated
+     *                                    with anything but a configuration section.
+     * @since 2.0.0
      */
     @NotNull
     ConfigurationSection getSection(@NotNull String path);
@@ -174,11 +173,11 @@ public interface ConfigurationSection {
      * @param path the path whose associated configuration section is to be returned.
      * @param def  the default configuration section to be returned if no mapping
      *             is present for the specified {@code path}.
-     * @return     the configuration section mapped to the specified {@code path},
-     *             or the given default one if no mapping is present.
-     * @throws     ConfigurationTypeException if the specified path is already associated
-     *                                        with anything but a configuration section.
-     * @since      2.0.0
+     * @return the configuration section mapped to the specified {@code path},
+     * or the given default one if no mapping is present.
+     * @throws ConfigurationTypeException if the specified path is already associated
+     *                                    with anything but a configuration section.
+     * @since 2.0.0
      */
     @Nullable
     @Contract("_, !null -> !null")
@@ -189,14 +188,14 @@ public interface ConfigurationSection {
      * Returns a new set which contains all the keys of this configuration
      * section according to se specified {@link TraversalMode}, or a new
      * empty set if this configuration section is empty.<br><br>
-     *
+     * <p>
      * For more information about traversal modes, please refer to {@link TraversalMode} javadocs.
      *
      * @param traversalMode the traversal mode used for generating the keys that are to be returned.
-     * @return              a new set which contains all the keys of this configuration
-     *                      section according to se specified {@link TraversalMode}, or
-     *                      a new empty set if this configuration section is empty.
-     * @since               2.0.0
+     * @return a new set which contains all the keys of this configuration
+     * section according to se specified {@link TraversalMode}, or
+     * a new empty set if this configuration section is empty.
+     * @since 2.0.0
      */
     @NotNull
     @Contract("_ -> new")
@@ -207,11 +206,11 @@ public interface ConfigurationSection {
      * Returns the byte value associated to the specified path.
      *
      * @param path the path whose associated byte value is to be returned.
-     * @return     the byte value associated to the specified path.
-     * @throws     NullPointerException       if no mapping is present for the specified path.
-     * @throws     ConfigurationTypeException if the value associated to the specified path
-     *                                        could not be converted to byte.
-     * @since      2.0.0
+     * @return the byte value associated to the specified path.
+     * @throws NullPointerException       if no mapping is present for the specified path.
+     * @throws ConfigurationTypeException if the value associated to the specified path
+     *                                    could not be converted to byte.
+     * @since 2.0.0
      */
     byte getByte(@NotNull String path);
 
@@ -221,11 +220,11 @@ public interface ConfigurationSection {
      * or {@code def} if no mapping is present.
      *
      * @param path the path whose associated byte value is to be returned.
-     * @return     the byte value associated to the specified path,
-     *             or the given default value if no mapping is present.
-     * @throws     ConfigurationTypeException if the value associated to the specified path
-     *                                        could not be converted to byte.
-     * @since      2.0.0
+     * @return the byte value associated to the specified path,
+     * or the given default value if no mapping is present.
+     * @throws ConfigurationTypeException if the value associated to the specified path
+     *                                    could not be converted to byte.
+     * @since 2.0.0
      */
     byte getByte(@NotNull String path, byte def);
 
@@ -234,11 +233,11 @@ public interface ConfigurationSection {
      * Returns a new list which contains all the byte values mapped to {@code path}.
      *
      * @param path the path whose associated byte values are to be returned.
-     * @return     a new list which contains all the byte values mapped to {@code path}.
-     * @throws     NullPointerException           if no mapping is present for the specified path.
-     * @throws     ConfigurationListTypeException if the list contains any value that could not
-     *                                            be converted to byte, or any {@code null} value.
-     * @since      2.0.0
+     * @return a new list which contains all the byte values mapped to {@code path}.
+     * @throws NullPointerException           if no mapping is present for the specified path.
+     * @throws ConfigurationListTypeException if the list contains any value that could not
+     *                                        be converted to byte, or any {@code null} value.
+     * @since 2.0.0
      */
     @NotNull
     @Contract("_ -> new")
@@ -249,11 +248,11 @@ public interface ConfigurationSection {
      * Returns the short value associated to the specified path.
      *
      * @param path the path whose associated short value is to be returned.
-     * @return     the short value associated to the specified path.
-     * @throws     NullPointerException       if no mapping is present for the specified path.
-     * @throws     ConfigurationTypeException if the value associated to the specified path
-     *                                        could not be converted to short.
-     * @since      2.0.0
+     * @return the short value associated to the specified path.
+     * @throws NullPointerException       if no mapping is present for the specified path.
+     * @throws ConfigurationTypeException if the value associated to the specified path
+     *                                    could not be converted to short.
+     * @since 2.0.0
      */
     short getShort(@NotNull String path);
 
@@ -263,11 +262,11 @@ public interface ConfigurationSection {
      * or {@code def} if no mapping is present.
      *
      * @param path the path whose associated short value is to be returned.
-     * @return     the short value associated to the specified path,
-     *             or the given default value if no mapping is present.
-     * @throws     ConfigurationTypeException if the value associated to the specified path
-     *                                        could not be converted to short.
-     * @since      2.0.0
+     * @return the short value associated to the specified path,
+     * or the given default value if no mapping is present.
+     * @throws ConfigurationTypeException if the value associated to the specified path
+     *                                    could not be converted to short.
+     * @since 2.0.0
      */
     short getShort(@NotNull String path, short def);
 
@@ -276,11 +275,11 @@ public interface ConfigurationSection {
      * Returns a new list which contains all the short values mapped to {@code path}.
      *
      * @param path the path whose associated short values are to be returned.
-     * @return     a new list which contains all the short values mapped to {@code path}.
-     * @throws     NullPointerException           if no mapping is present for the specified path.
-     * @throws     ConfigurationListTypeException if the list contains any value that could not
-     *                                            be converted to short, or any {@code null} value.
-     * @since      2.0.0
+     * @return a new list which contains all the short values mapped to {@code path}.
+     * @throws NullPointerException           if no mapping is present for the specified path.
+     * @throws ConfigurationListTypeException if the list contains any value that could not
+     *                                        be converted to short, or any {@code null} value.
+     * @since 2.0.0
      */
     @NotNull
     @Contract("_ -> new")
@@ -291,11 +290,11 @@ public interface ConfigurationSection {
      * Returns the integer value associated to the specified path.
      *
      * @param path the path whose associated integer value is to be returned.
-     * @return     the integer value associated to the specified path.
-     * @throws     NullPointerException       if no mapping is present for the specified path.
-     * @throws     ConfigurationTypeException if the value associated to the specified path
-     *                                        could not be converted to integer.
-     * @since      2.0.0
+     * @return the integer value associated to the specified path.
+     * @throws NullPointerException       if no mapping is present for the specified path.
+     * @throws ConfigurationTypeException if the value associated to the specified path
+     *                                    could not be converted to integer.
+     * @since 2.0.0
      */
     int getInt(@NotNull String path);
 
@@ -305,11 +304,11 @@ public interface ConfigurationSection {
      * or {@code def} if no mapping is present.
      *
      * @param path the path whose associated integer value is to be returned.
-     * @return     the integer value associated to the specified path,
-     *             or the given default value if no mapping is present.
-     * @throws     ConfigurationTypeException if the value associated to the specified path
-     *                                        could not be converted to integer.
-     * @since      2.0.0
+     * @return the integer value associated to the specified path,
+     * or the given default value if no mapping is present.
+     * @throws ConfigurationTypeException if the value associated to the specified path
+     *                                    could not be converted to integer.
+     * @since 2.0.0
      */
     int getInt(@NotNull String path, int def);
 
@@ -318,11 +317,11 @@ public interface ConfigurationSection {
      * Returns a new list which contains all the integer values mapped to {@code path}.
      *
      * @param path the path whose associated integer values are to be returned.
-     * @return     a new list which contains all the integer values mapped to {@code path}.
-     * @throws     NullPointerException           if no mapping is present for the specified path.
-     * @throws     ConfigurationListTypeException if the list contains any value that could not
-     *                                            be converted to integer, or any {@code null} value.
-     * @since      2.0.0
+     * @return a new list which contains all the integer values mapped to {@code path}.
+     * @throws NullPointerException           if no mapping is present for the specified path.
+     * @throws ConfigurationListTypeException if the list contains any value that could not
+     *                                        be converted to integer, or any {@code null} value.
+     * @since 2.0.0
      */
     @NotNull
     @Contract("_ -> new")
@@ -333,11 +332,11 @@ public interface ConfigurationSection {
      * Returns the long value associated to the specified path.
      *
      * @param path the path whose associated long value is to be returned.
-     * @return     the long value associated to the specified path.
-     * @throws     NullPointerException       if no mapping is present for the specified path.
-     * @throws     ConfigurationTypeException if the value associated to the specified path
-     *                                        could not be converted to long.
-     * @since      2.0.0
+     * @return the long value associated to the specified path.
+     * @throws NullPointerException       if no mapping is present for the specified path.
+     * @throws ConfigurationTypeException if the value associated to the specified path
+     *                                    could not be converted to long.
+     * @since 2.0.0
      */
     long getLong(@NotNull String path);
 
@@ -347,11 +346,11 @@ public interface ConfigurationSection {
      * or {@code def} if no mapping is present.
      *
      * @param path the path whose associated long value is to be returned.
-     * @return     the long value associated to the specified path,
-     *             or the given default value if no mapping is present.
-     * @throws     ConfigurationTypeException if the value associated to the specified path
-     *                                        could not be converted to long.
-     * @since      2.0.0
+     * @return the long value associated to the specified path,
+     * or the given default value if no mapping is present.
+     * @throws ConfigurationTypeException if the value associated to the specified path
+     *                                    could not be converted to long.
+     * @since 2.0.0
      */
     long getLong(@NotNull String path, long def);
 
@@ -360,11 +359,11 @@ public interface ConfigurationSection {
      * Returns a new list which contains all the long values mapped to {@code path}.
      *
      * @param path the path whose associated long values are to be returned.
-     * @return     a new list which contains all the long values mapped to {@code path}.
-     * @throws     NullPointerException           if no mapping is present for the specified path.
-     * @throws     ConfigurationListTypeException if the list contains any value that could not
-     *                                            be converted to long, or any {@code null} value.
-     * @since      2.0.0
+     * @return a new list which contains all the long values mapped to {@code path}.
+     * @throws NullPointerException           if no mapping is present for the specified path.
+     * @throws ConfigurationListTypeException if the list contains any value that could not
+     *                                        be converted to long, or any {@code null} value.
+     * @since 2.0.0
      */
     @NotNull
     @Contract("_ -> new")
@@ -375,11 +374,11 @@ public interface ConfigurationSection {
      * Returns the float value associated to the specified path.
      *
      * @param path the path whose associated float value is to be returned.
-     * @return     the float value associated to the specified path.
-     * @throws     NullPointerException       if no mapping is present for the specified path.
-     * @throws     ConfigurationTypeException if the value associated to the specified path
-     *                                        could not be converted to float.
-     * @since      2.0.0
+     * @return the float value associated to the specified path.
+     * @throws NullPointerException       if no mapping is present for the specified path.
+     * @throws ConfigurationTypeException if the value associated to the specified path
+     *                                    could not be converted to float.
+     * @since 2.0.0
      */
     float getFloat(@NotNull String path);
 
@@ -389,11 +388,11 @@ public interface ConfigurationSection {
      * or {@code def} if no mapping is present.
      *
      * @param path the path whose associated float value is to be returned.
-     * @return     the float value associated to the specified path,
-     *             or the given default value if no mapping is present.
-     * @throws     ConfigurationTypeException if the value associated to the specified path
-     *                                        could not be converted to float.
-     * @since      2.0.0
+     * @return the float value associated to the specified path,
+     * or the given default value if no mapping is present.
+     * @throws ConfigurationTypeException if the value associated to the specified path
+     *                                    could not be converted to float.
+     * @since 2.0.0
      */
     float getFloat(@NotNull String path, float def);
 
@@ -402,11 +401,11 @@ public interface ConfigurationSection {
      * Returns a new list which contains all the float values mapped to {@code path}.
      *
      * @param path the path whose associated float values are to be returned.
-     * @return     a new list which contains all the float values mapped to {@code path}.
-     * @throws     NullPointerException           if no mapping is present for the specified path.
-     * @throws     ConfigurationListTypeException if the list contains any value that could not
-     *                                            be converted to float, or any {@code null} value.
-     * @since      2.0.0
+     * @return a new list which contains all the float values mapped to {@code path}.
+     * @throws NullPointerException           if no mapping is present for the specified path.
+     * @throws ConfigurationListTypeException if the list contains any value that could not
+     *                                        be converted to float, or any {@code null} value.
+     * @since 2.0.0
      */
     @NotNull
     @Contract("_ -> new")
@@ -417,11 +416,11 @@ public interface ConfigurationSection {
      * Returns the double value associated to the specified path.
      *
      * @param path the path whose associated double value is to be returned.
-     * @return     the double value associated to the specified path.
-     * @throws     NullPointerException       if no mapping is present for the specified path.
-     * @throws     ConfigurationTypeException if the value associated to the specified path
-     *                                        could not be converted to double.
-     * @since      2.0.0
+     * @return the double value associated to the specified path.
+     * @throws NullPointerException       if no mapping is present for the specified path.
+     * @throws ConfigurationTypeException if the value associated to the specified path
+     *                                    could not be converted to double.
+     * @since 2.0.0
      */
     double getDouble(@NotNull String path);
 
@@ -431,11 +430,11 @@ public interface ConfigurationSection {
      * or {@code def} if no mapping is present.
      *
      * @param path the path whose associated double value is to be returned.
-     * @return     the double value associated to the specified path,
-     *             or the given default value if no mapping is present.
-     * @throws     ConfigurationTypeException if the value associated to the specified path
-     *                                        could not be converted to double.
-     * @since      2.0.0
+     * @return the double value associated to the specified path,
+     * or the given default value if no mapping is present.
+     * @throws ConfigurationTypeException if the value associated to the specified path
+     *                                    could not be converted to double.
+     * @since 2.0.0
      */
     double getDouble(@NotNull String path, double def);
 
@@ -444,11 +443,11 @@ public interface ConfigurationSection {
      * Returns a new list which contains all the double values mapped to {@code path}.
      *
      * @param path the path whose associated double values are to be returned.
-     * @return     a new list which contains all the double values mapped to {@code path}.
-     * @throws     NullPointerException           if no mapping is present for the specified path.
-     * @throws     ConfigurationListTypeException if the list contains any value that could not
-     *                                            be converted to double, or any {@code null} value.
-     * @since      2.0.0
+     * @return a new list which contains all the double values mapped to {@code path}.
+     * @throws NullPointerException           if no mapping is present for the specified path.
+     * @throws ConfigurationListTypeException if the list contains any value that could not
+     *                                        be converted to double, or any {@code null} value.
+     * @since 2.0.0
      */
     @NotNull
     @Contract("_ -> new")
@@ -459,11 +458,11 @@ public interface ConfigurationSection {
      * Returns the boolean value associated to the specified path.
      *
      * @param path the path whose associated boolean value is to be returned.
-     * @return     the boolean value associated to the specified path.
-     * @throws     NullPointerException       if no mapping is present for the specified path.
-     * @throws     ConfigurationTypeException if the value associated to the specified path
-     *                                        could not be converted to boolean.
-     * @since      2.0.0
+     * @return the boolean value associated to the specified path.
+     * @throws NullPointerException       if no mapping is present for the specified path.
+     * @throws ConfigurationTypeException if the value associated to the specified path
+     *                                    could not be converted to boolean.
+     * @since 2.0.0
      */
     boolean getBoolean(@NotNull String path);
 
@@ -473,11 +472,11 @@ public interface ConfigurationSection {
      * or {@code def} if no mapping is present.
      *
      * @param path the path whose associated boolean value is to be returned.
-     * @return     the boolean value associated to the specified path,
-     *             or the given default value if no mapping is present.
-     * @throws     ConfigurationTypeException if the value associated to the specified path
-     *                                        could not be converted to boolean.
-     * @since      2.0.0
+     * @return the boolean value associated to the specified path,
+     * or the given default value if no mapping is present.
+     * @throws ConfigurationTypeException if the value associated to the specified path
+     *                                    could not be converted to boolean.
+     * @since 2.0.0
      */
     boolean getBoolean(@NotNull String path, boolean def);
 
@@ -486,11 +485,11 @@ public interface ConfigurationSection {
      * Returns a new list which contains all the boolean values mapped to {@code path}.
      *
      * @param path the path whose associated boolean values are to be returned.
-     * @return     a new list which contains all the boolean values mapped to {@code path}.
-     * @throws     NullPointerException           if no mapping is present for the specified path.
-     * @throws     ConfigurationListTypeException if the list contains any value that could not
-     *                                            be converted to boolean, or any {@code null} value.
-     * @since      2.0.0
+     * @return a new list which contains all the boolean values mapped to {@code path}.
+     * @throws NullPointerException           if no mapping is present for the specified path.
+     * @throws ConfigurationListTypeException if the list contains any value that could not
+     *                                        be converted to boolean, or any {@code null} value.
+     * @since 2.0.0
      */
     @NotNull
     @Contract("_ -> new")
@@ -501,9 +500,9 @@ public interface ConfigurationSection {
      * Returns the string representation of the value associated to the specified path.
      *
      * @param path the path whose associated string value is to be returned.
-     * @return     the string value associated to the specified path.
-     * @throws     NullPointerException if no mapping is present for the specified path.
-     * @since      2.0.0
+     * @return the string value associated to the specified path.
+     * @throws NullPointerException if no mapping is present for the specified path.
+     * @since 2.0.0
      */
     @NotNull
     String getString(@NotNull String path);
@@ -514,9 +513,9 @@ public interface ConfigurationSection {
      * specified path, or {@code def} if no mapping is present.
      *
      * @param path the path whose string representation of the associated value is to be returned.
-     * @return     the string representation of the value associated to the specified path,
-     *             or the given default string value if no mapping is present.
-     * @since      2.0.0
+     * @return the string representation of the value associated to the specified path,
+     * or the given default string value if no mapping is present.
+     * @since 2.0.0
      */
     @Nullable
     @Contract("_, !null -> !null")
@@ -527,11 +526,11 @@ public interface ConfigurationSection {
      * Returns a new list which contains all the string representations of the values mapped to {@code path}.
      *
      * @param path the path whose string representations of the associated values are to be returned.
-     * @return     a new list which contains all the string representation of the values mapped to {@code path}.
-     * @throws     NullPointerException           if no mapping is present for the specified path.
-     * @throws     ConfigurationListTypeException if the list contains any value that has no string
-     *                                            representation, or any {@code null} value.
-     * @since      2.0.0
+     * @return a new list which contains all the string representation of the values mapped to {@code path}.
+     * @throws NullPointerException           if no mapping is present for the specified path.
+     * @throws ConfigurationListTypeException if the list contains any value that has no string
+     *                                        representation, or any {@code null} value.
+     * @since 2.0.0
      */
     @NotNull
     @Contract("_ -> new")
@@ -542,10 +541,10 @@ public interface ConfigurationSection {
      * Returns the enum value in {@code enumClass} associated to the specified path.
      *
      * @param path the path whose associated enum constant in {@code enumClass} is to be returned.
-     * @return     the enum constant in {@code enumClass} associated to the specified path.
-     * @throws     NullPointerException       if no mapping is present for the specified path.
-     * @throws     ConfigurationTypeException if {@code enumClass} has no constant that matches the mapped value.
-     * @since      2.0.0
+     * @return the enum constant in {@code enumClass} associated to the specified path.
+     * @throws NullPointerException       if no mapping is present for the specified path.
+     * @throws ConfigurationTypeException if {@code enumClass} has no constant that matches the mapped value.
+     * @since 2.0.0
      */
     @NotNull <T extends Enum<T>> T getEnum(@NotNull String path, @NotNull Class<T> enumClass);
 
@@ -555,11 +554,11 @@ public interface ConfigurationSection {
      * or {@code def} if no mapping is present.
      *
      * @param path the path whose associated enum constant in {@code enumClass} is to be returned.
-     * @return     the enum constant in {@code enumClass} associated to the specified path,
-     *             or the given default constant value if no mapping is present.
-     * @throws     ConfigurationTypeException if {@code enumClass} has no constant
-     *                                        that matches the mapped value, if any.
-     * @since      2.0.0
+     * @return the enum constant in {@code enumClass} associated to the specified path,
+     * or the given default constant value if no mapping is present.
+     * @throws ConfigurationTypeException if {@code enumClass} has no constant
+     *                                    that matches the mapped value, if any.
+     * @since 2.0.0
      */
     @Nullable
     @Contract("_, _, !null -> !null")
@@ -572,12 +571,12 @@ public interface ConfigurationSection {
      *
      * @param path the path whose associated enum constants
      *             in {@code enumClass} values are to be returned.
-     * @return     a new list which contains all the enum constants in
-     *             {@code enumClass} associated to the specified {@code path}.
-     * @throws     NullPointerException           if no mapping is present for the specified path.
-     * @throws     ConfigurationListTypeException if the list contains any value that has no matching constant
-     *                                            in {@code enumClass}, or any {@code null} value.
-     * @since      2.0.0
+     * @return a new list which contains all the enum constants in
+     * {@code enumClass} associated to the specified {@code path}.
+     * @throws NullPointerException           if no mapping is present for the specified path.
+     * @throws ConfigurationListTypeException if the list contains any value that has no matching constant
+     *                                        in {@code enumClass}, or any {@code null} value.
+     * @since 2.0.0
      */
     @NotNull
     @Contract("_, _ -> new")
@@ -585,20 +584,38 @@ public interface ConfigurationSection {
 
 
     /**
-     *  TODO:
+     * Returns the read lock associated to the whole {@link Configuration}; which means acquiring it would
+     * lock all the sections inside the configuration, not only the one that returns it.<br><br>
+     * <p>
+     * Locks should be used with extreme care.<br>
+     * Please, refer to the official javadocs for further information:
+     * <ul>
+     *  <li>{@link ReentrantReadWriteLock}</li>
+     *  <li>{@link ReentrantReadWriteLock.ReadLock}</li>
+     * </ul>
+     *
+     * @return the read lock associated to the whole {@link Configuration}.
+     * @since 2.0.0
      */
-
     @NotNull
     ReentrantReadWriteLock.ReadLock readLock();
 
+
     /**
-     *  TODO:
+     * Returns the write lock associated to the whole {@link Configuration}; which means acquiring it would
+     * lock all the sections inside the configuration, not only the one that returns it.<br><br>
+     * <p>
+     * Locks should be used with extreme care.<br>
+     * Please, refer to the official javadocs for further information:
+     * <ul>
+     *  <li>{@link ReentrantReadWriteLock}</li>
+     *  <li>{@link ReentrantReadWriteLock.WriteLock}</li>
+     * </ul>
+     *
+     * @return the read lock associated to the whole {@link Configuration}.
+     * @since 2.0.0
      */
     @NotNull
     ReentrantReadWriteLock.WriteLock writeLock();
-
-    // TODO: <T> T getObject(@NotNull String path, @NotNull Function<ConfigurationSection, T> parser);
-
-    // TODO: <T> T getObjectList(@NotNull String path, @NotNull Function<ConfigurationSection, T> parser);
 
 }

@@ -25,5 +25,4 @@ package net.bobolabs.config;
 public enum TestConfigs implements ConfigurationDescription {
 
 
-
 }

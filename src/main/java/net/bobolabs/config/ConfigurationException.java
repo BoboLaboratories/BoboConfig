@@ -24,6 +24,12 @@ package net.bobolabs.config;
 
 import org.jetbrains.annotations.NotNull;
 
+
+/**
+ * <h2>Description</h2>
+ *
+ * @since 2.0.0
+ */
 public class ConfigurationException extends RuntimeException {
 
     ConfigurationException(@NotNull String message) {
