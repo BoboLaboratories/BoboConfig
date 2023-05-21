@@ -37,7 +37,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
 /**
- * An object which store configuration data as loaded from file as specified through a {@link ConfigurationLoader}.<br>
+ * A thread-safe configuration data store which supports many read/write operations.
+ * <p>
+ * Configuration is loaded from file as specified through a {@link ConfigurationLoader}.<br>
  * Any read-write operation is completely thread-safe, including {@link #save()} and {@link #reload()}.
  *
  * @since 2.0.0
@@ -64,33 +66,8 @@ public final class Configuration implements ConfigurationSection {
         load();
     }
 
-
-    /**
-     * Saves the configuration to the source file.
-     *
-     * @since 2.0.0
-     */
-    public void save() {
-        writeLock().lock();
-        try (Writer writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
-            yaml.dump(section.getData(), writer);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            writeLock().unlock();
-        }
-    }
-
-
-    /**
-     * Reloads the configuration from file, discarding any unsaved changes
-     * and reflecting any changes that was made to the file.
-     *
-     * @since 2.0.0
-     */
-    public void reload() {
-        // load already acquires lock
-        load();
+    public @NotNull ConfigurationLock readLocked() {
+        return new ConfigurationLock(this, true);
     }
 
 
@@ -513,8 +490,45 @@ public final class Configuration implements ConfigurationSection {
 
 
     /**
-     * {@inheritDoc}
+     * Saves the configuration to the source file.
      *
+     * @since 2.0.0
+     */
+    public void save() {
+        writeLock().lock();
+        try (Writer writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
+            yaml.dump(section.getData(), writer);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            writeLock().unlock();
+        }
+    }
+
+
+    /**
+     * Reloads the configuration from file, discarding any unsaved changes
+     * and reflecting any changes that was made to the file.
+     *
+     * @since 2.0.0
+     */
+    public void reload() {
+        // load already acquires lock
+        load();
+    }
+
+
+    /**
+     * Returns the read lock associated to this configuration.
+     * <p>
+     * Locks should be used with extreme care.<br>
+     * Please, refer to the official javadocs for further information:
+     * <ul>
+     *  <li>{@link ReentrantReadWriteLock}</li>
+     *  <li>{@link ReentrantReadWriteLock.ReadLock}</li>
+     * </ul>
+     *
+     * @return the read lock associated to the whole {@link Configuration}.
      * @since 2.0.0
      */
     public @NotNull ReentrantReadWriteLock.ReadLock readLock() {
@@ -523,8 +537,16 @@ public final class Configuration implements ConfigurationSection {
 
 
     /**
-     * {@inheritDoc}
+     * Returns the write lock associated to this configuration.
+     * <p>
+     * Locks should be used with extreme care.<br>
+     * Please, refer to the official javadocs for further information:
+     * <ul>
+     *  <li>{@link ReentrantReadWriteLock}</li>
+     *  <li>{@link ReentrantReadWriteLock.WriteLock}</li>
+     * </ul>
      *
+     * @return the read lock associated to the whole {@link Configuration}.
      * @since 2.0.0
      */
     public @NotNull ReentrantReadWriteLock.WriteLock writeLock() {

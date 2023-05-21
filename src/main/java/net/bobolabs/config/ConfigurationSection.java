@@ -30,9 +30,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+
 /**
  * A configuration section is anything inside a configuration that is not a primitive or list value
- * (i.e. any path that does not lead to a primitive or list value leads to a configuration section).<br>
+ * (i.e.&nbsp;any path that does not lead to a primitive or list value leads to a configuration section).<br>
  * <p>
  * A {@link Configuration} is a configuration section as well as it may contain multiple subsections
  * and can never contain just a single primitive or list value.<br>
@@ -579,41 +580,5 @@ public interface ConfigurationSection {
     @NotNull
     @Contract("_, _ -> new")
     <T extends Enum<T>> List<@NotNull T> getEnumList(@NotNull String path, @NotNull Class<T> enumClass);
-
-
-    /**
-     * Returns the read lock associated to the whole {@link Configuration}; which means acquiring it would
-     * lock all the sections inside the configuration, not only the one that returns it.<br><br>
-     * <p>
-     * Locks should be used with extreme care.<br>
-     * Please, refer to the official javadocs for further information:
-     * <ul>
-     *  <li>{@link ReentrantReadWriteLock}</li>
-     *  <li>{@link ReentrantReadWriteLock.ReadLock}</li>
-     * </ul>
-     *
-     * @return the read lock associated to the whole {@link Configuration}.
-     * @since 2.0.0
-     */
-    @NotNull
-    ReentrantReadWriteLock.ReadLock readLock();
-
-
-    /**
-     * Returns the write lock associated to the whole {@link Configuration}; which means acquiring it would
-     * lock all the sections inside the configuration, not only the one that returns it.<br><br>
-     * <p>
-     * Locks should be used with extreme care.<br>
-     * Please, refer to the official javadocs for further information:
-     * <ul>
-     *  <li>{@link ReentrantReadWriteLock}</li>
-     *  <li>{@link ReentrantReadWriteLock.WriteLock}</li>
-     * </ul>
-     *
-     * @return the read lock associated to the whole {@link Configuration}.
-     * @since 2.0.0
-     */
-    @NotNull
-    ReentrantReadWriteLock.WriteLock writeLock();
 
 }

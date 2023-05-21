@@ -32,11 +32,11 @@ final class ConfigurationRepresenter extends Representer {
         super(options);
         this.representers.put(ConfigurationSectionImpl.class, data -> {
             ConfigurationSectionImpl section = (ConfigurationSectionImpl) data;
-            section.writeLock().lock();
+            section.getRoot().writeLock().lock();
             try {
                 return represent(section.getData());
             } finally {
-                section.writeLock().unlock();
+                section.getRoot().writeLock().unlock();
             }
         });
     }

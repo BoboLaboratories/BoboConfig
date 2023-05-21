@@ -27,6 +27,8 @@ import org.jetbrains.annotations.Nullable;
 
 
 /**
+ * An exception that is raised when a configuration contains some value that cannot be converted to the requested type.
+ *
  * @since 2.0.0
  */
 public final class ConfigurationTypeException extends ConfigurationException {

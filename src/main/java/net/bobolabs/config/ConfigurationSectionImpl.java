@@ -61,7 +61,7 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
         this.root = root;
 
         if (ext != null) {
-            writeLock().lock();
+            root.writeLock().lock();
             try {
                 for (Map.Entry<?, ?> entry : ext.entrySet()) {
                     String key = Objects.toString(entry.getKey());
@@ -72,7 +72,7 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
                     }
                 }
             } finally {
-                writeLock().unlock();
+                root.writeLock().unlock();
             }
         }
     }
@@ -99,17 +99,17 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
         // lock needed to prevent concurrent modifications on the list while
         // copying using copy constructor (returned pointer points to the
         // same list that would be modified by write operations)
-        readLock().lock();
+        root.readLock().lock();
         try {
             return (get(path, null, true) instanceof List<?> list) ? new ArrayList<>(list) : Collections.emptyList();
         } finally {
-            readLock().unlock();
+            root.readLock().unlock();
         }
     }
 
     @Override
     public void set(@NotNull String path, @Nullable Object value) {
-        writeLock().lock();
+        root.writeLock().lock();
         try {
             if (value instanceof Map<?, ?> map) {
                 value = new ConfigurationSectionImpl(root, map);
@@ -140,7 +140,7 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
             root.autoSave();
         } finally {
-            writeLock().unlock();
+            root.writeLock().unlock();
         }
     }
 
@@ -152,7 +152,7 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public @NotNull ConfigurationSection createSection(@NotNull String path) {
-        writeLock().lock();
+        root.writeLock().lock();
         try {
             if (contains(path)) {
                 throw new IllegalArgumentException("path `" + path + "` already exists in this configuration section");
@@ -161,13 +161,13 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
             set(path, section);
             return section;
         } finally {
-            writeLock().unlock();
+            root.writeLock().unlock();
         }
     }
 
     @Override
     public @NotNull ConfigurationSection getOrCreateSection(@NotNull String path) {
-        writeLock().lock();
+        root.writeLock().lock();
         try {
             ConfigurationSection section = getSection(path, path, null, false);
             if (section == null) {
@@ -175,7 +175,7 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
             }
             return section;
         } finally {
-            writeLock().unlock();
+            root.writeLock().unlock();
         }
     }
 
@@ -192,7 +192,7 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
 
     @Override
     public @NotNull Set<@NotNull String> getKeys(@NotNull TraversalMode traversalMode) {
-        readLock().lock();
+        root.readLock().lock();
         try {
             Set<String> accumulator = new HashSet<>();
             for (Map.Entry<String, Object> entry : data.entrySet()) {
@@ -207,7 +207,7 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
             }
             return accumulator;
         } finally {
-            readLock().unlock();
+            root.readLock().unlock();
         }
     }
 
@@ -377,17 +377,7 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
         }
         return ret;
     }
-
-    @Override
-    public @NotNull ReentrantReadWriteLock.ReadLock readLock() {
-        return root.readLock();
-    }
-
-    @Override
-    public @NotNull ReentrantReadWriteLock.WriteLock writeLock() {
-        return root.writeLock();
-    }
-
+    
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -413,10 +403,14 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
         return data;
     }
 
+    @NotNull Configuration getRoot() {
+        return root;
+    }
+
     @SuppressWarnings("unchecked")
     @Contract("_, !null, _ -> !null; _, _, true -> !null")
     private <T> @Nullable T get(@NotNull String path, @Nullable T def, boolean throwIfNull) {
-        readLock().lock();
+        root.readLock().lock();
         try {
             Object ret = null;
             ConfigurationSection section = getSectionFor(path);
@@ -432,7 +426,7 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
             }
             return ret == null ? def : (T) ret;
         } finally {
-            readLock().unlock();
+            root.readLock().unlock();
         }
     }
 
@@ -484,7 +478,7 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
                                                       @NotNull String relativePath,
                                                       @Nullable ConfigurationSection def,
                                                       boolean throwIfNull) {
-        readLock().lock();
+        root.readLock().lock();
         try {
             Object section = null;
             ConfigurationSectionImpl ret = getSectionFor(relativePath);
@@ -506,12 +500,12 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
             }
             return def;
         } finally {
-            readLock().unlock();
+            root.readLock().unlock();
         }
     }
 
     private @Nullable ConfigurationSectionImpl getSectionFor(@NotNull String path) {
-        readLock().lock();
+        root.readLock().lock();
         try {
             int index = path.indexOf(SEPARATOR);
             if (index == -1) {
@@ -521,7 +515,7 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
                 return (ConfigurationSectionImpl) data.get(rootPath);
             }
         } finally {
-            readLock().unlock();
+            root.readLock().unlock();
         }
     }
 

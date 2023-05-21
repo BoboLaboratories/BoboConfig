@@ -80,14 +80,14 @@ package net.bobolabs.config;
  * <br><br>
  *
  * <strong>Tip</strong>: to get branch paths only (i.e. those that are associated to {@link ConfigurationSection}s
- * rather than primitive or list values), one could do
+ * rather than primitive or list values), one could do:
  * <pre>{@code
  *  Set<String> all = section.getKeys(ALL);
  *  Set<String> leaves = section.getKeys(LEAVES);
  *  Set<String> branches = all.minus(leaves);
  * }</pre>
  * <p>
- * which would return
+ * which would return:
  * <ul>
  *  <li>root.section</li>
  *  <li>root</li>

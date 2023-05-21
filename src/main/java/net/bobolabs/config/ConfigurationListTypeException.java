@@ -29,6 +29,9 @@ import java.util.List;
 
 
 /**
+ * An exception that is raised when a list inside a configuration contains
+ * some element that cannot be converted to the requested list type.
+ *
  * @since 2.0.0
  */
 public final class ConfigurationListTypeException extends ConfigurationException {

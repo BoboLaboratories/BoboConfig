@@ -26,6 +26,8 @@ import org.jetbrains.annotations.NotNull;
 
 
 /**
+ * An exception that is raised when specific situations emerge when interacting with configurations in bad ways.
+ *
  * @since 2.0.0
  */
 public class ConfigurationException extends RuntimeException {
