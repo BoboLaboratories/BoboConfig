@@ -6,7 +6,7 @@ plugins {
     id 'java-library'
 }
 
-group = 'net.bobolabs'
+group = 'net.bobolabs.config'
 version = '2.0.0'
 
 repositories {
