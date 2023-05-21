@@ -31,8 +31,6 @@ import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
- * <h2>Description</h2>
- * <p>
  * A configuration section is anything inside a configuration that is not a primitive or list value
  * (i.e. any path that does not lead to a primitive or list value leads to a configuration section).<br>
  * <p>

@@ -37,8 +37,6 @@ import java.util.function.UnaryOperator;
 
 
 /**
- * <h2>Description</h2>
- * <p>
  * A thread-safe manager for multiple {@link Configuration} objects loaded as instructed
  * by the given {@link ConfigurationDescription} enum.<br>
  * The same enum can then be used to retrieve specific configurations through this manager.

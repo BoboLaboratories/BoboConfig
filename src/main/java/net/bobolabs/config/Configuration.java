@@ -37,8 +37,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
 /**
- * <h2>Description</h2>
- * <p>
  * An object which store configuration data as loaded from file as specified through a {@link ConfigurationLoader}.<br>
  * Any read-write operation is completely thread-safe, including {@link #save()} and {@link #reload()}.
  *

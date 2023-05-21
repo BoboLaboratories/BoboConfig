@@ -31,8 +31,6 @@ import java.nio.file.Files;
 
 
 /**
- * <h2>Description</h2>
- * <p>
  * An object used to load a {@link Configuration} object from
  * file according to options provided through its method calls.
  *

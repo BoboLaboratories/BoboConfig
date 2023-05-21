@@ -27,8 +27,6 @@ import org.jetbrains.annotations.Nullable;
 
 
 /**
- * <h2>Description</h2>
- *
  * @since 2.0.0
  */
 public final class ConfigurationTypeException extends ConfigurationException {

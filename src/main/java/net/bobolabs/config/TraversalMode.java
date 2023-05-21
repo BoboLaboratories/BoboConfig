@@ -24,8 +24,6 @@ package net.bobolabs.config;
 
 
 /**
- * <h2>Description</h2>
- * <p>
  * An enum that specifies which paths should be returned when calling
  * {@link ConfigurationSection#getKeys(TraversalMode) getKeys} on a
  * {@link Configuration} or {@link ConfigurationSection} object.<br><br>
