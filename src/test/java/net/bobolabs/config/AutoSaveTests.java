@@ -336,11 +336,8 @@ class AutoSaveTests {
 
         // we do not call .save() manually
 
-//        URL resourceUrl = getClass().getClassLoader().getResource("test_config.yml");
-//        String expected = Files.readString(Paths.get(Objects.requireNonNull(resourceUrl).toURI()));
         String saved = Files.readString(configFile.toPath());
-
-        assertEquals(saved, EXPECTED_FILE_CONTENTS);
+        assertEquals(EXPECTED_FILE_CONTENTS, saved);
     }
 
 }

@@ -52,8 +52,9 @@ public final class ConfigurationLoader {
      * Provides information on which file is to be loaded.
      *
      * @param file the file that is to be loaded.
-     * @return a new configuration loader.
-     * @since 2.0.0
+     * @return     a new configuration loader.
+     * @throws     IllegalArgumentException if {@code file} is a directory.
+     * @since      2.0.0
      */
     public static @NotNull ConfigurationLoader fromFile(@NotNull File file) {
         // Do not accept directories
@@ -68,8 +69,9 @@ public final class ConfigurationLoader {
      * Provides information on which file is to be loaded.
      *
      * @param file the string representation of the path to the file that is to be loaded.
-     * @return a new configuration loader.
-     * @since 2.0.0
+     * @return     a new configuration loader.
+     * @throws     IllegalArgumentException if {@code file} is a directory.
+     * @since      2.0.0
      */
     public static @NotNull ConfigurationLoader fromFile(@NotNull String file) {
         return fromFile(new File(file));
@@ -82,10 +84,15 @@ public final class ConfigurationLoader {
      * @param directory the directory inside which the file that is to be loaded resides.
      * @param file      the string representation of the path to the file that
      *                  is to be loaded, relative to the provided directory.
-     * @return a new configuration loader.
-     * @since 2.0.0
+     * @return          a new configuration loader.
+     * @throws          IllegalArgumentException if {@code directory} is not a directory or the
+     *                                           specified {@code file} could not be resolved.
+     * @since           2.0.0
      */
     public static @NotNull ConfigurationLoader fromFile(@NotNull File directory, @NotNull String file) {
+        if (!directory.isDirectory()) {
+            throw new IllegalArgumentException(directory + " is not a directory");
+        }
         return fromFile(new File(directory, file));
     }
 
@@ -100,8 +107,8 @@ public final class ConfigurationLoader {
      *
      * @param autoSave {@code true} to enable auto save,
      *                 {@code false} to disable it (default behaviour).
-     * @return the current configuration loader itself.
-     * @since 2.0.0
+     * @return         the current configuration loader itself.
+     * @since          2.0.0
      */
     public @NotNull ConfigurationLoader autoSave(boolean autoSave) {
         this.autoSave = autoSave;
@@ -118,8 +125,8 @@ public final class ConfigurationLoader {
      * any of the {@link #fromFile} method variants could not be found.<br><br>
      *
      * @param defaultResource the path to the resource file which contains the default configuration.
-     * @return the current configuration loader itself.
-     * @since 2.0.0
+     * @return                the current configuration loader itself.
+     * @since                 2.0.0
      */
     public @NotNull ConfigurationLoader setDefaultResource(@NotNull String defaultResource) {
         this.saveDefaultResource = true;
@@ -132,27 +139,30 @@ public final class ConfigurationLoader {
      * Loads the {@link Configuration} as specified within this configuration loader.
      *
      * @return the loaded configuration.
-     * @since 2.0.0
+     * @throws IllegalArgumentException if any problem emerge when creating files and/or directories as specified.
+     * @since  2.0.0
      */
     public @NotNull Configuration load() {
         if (!file.exists()) {
-            // Fail if file doesn't exist and save default was not requested
+            // fail if file doesn't exist and save default was not requested
             if (!saveDefaultResource) {
-                throw new IllegalStateException("file should not be saved from resource but does not exist");
+                throw new IllegalArgumentException("file should not be saved from resource but does not exist");
             }
 
-            // Create folder structure
+            // create folder structure
             File parent = file.getParentFile();
             if (parent != null && !parent.exists()) {
-                parent.mkdirs(); // TODO do not ignore return value
+                if (!parent.mkdirs()) {
+                    throw new IllegalArgumentException("could not create directory " + parent);
+                }
             }
 
-            // TODO uhm
+            // establish default resource
             if (defaultResource == null) {
                 defaultResource = file.getName();
             }
 
-            // Copy file from resources
+            // copy file from resources
             if (!defaultResource.startsWith("/")) {
                 defaultResource = "/".concat(defaultResource);
             }

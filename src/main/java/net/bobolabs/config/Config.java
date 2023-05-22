@@ -78,7 +78,7 @@ public @interface Config {
      * Specifies whether the associated {@link Configuration} should be saved from the default
      * resource if the file is missing when {@link ConfigurationManager#load(Enum) ConfigurationManager.load()} variants are called.
      * <p>
-     * Disabled by default.
+     * Enabled by default.
      *
      * @return whether the associated {@link Configuration} should be saved from the default resource if the file is
      * missing when {@link ConfigurationManager#load(Enum) ConfigurationManager.load()} variants are called.
