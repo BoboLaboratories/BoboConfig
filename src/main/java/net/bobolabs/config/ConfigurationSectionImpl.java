@@ -416,6 +416,7 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
             }
         } else if (obj instanceof String str) {
             try {
+                str = str.toUpperCase();
                 return Enum.valueOf(enumClass, str);
             } catch (IllegalArgumentException ignored) {
                 // simply return null

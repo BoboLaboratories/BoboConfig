@@ -53,14 +53,9 @@ public final class ConfigurationLoader {
      *
      * @param file the file that is to be loaded.
      * @return     a new configuration loader.
-     * @throws     IllegalArgumentException if {@code file} is a directory.
      * @since      2.0.0
      */
     public static @NotNull ConfigurationLoader fromFile(@NotNull File file) {
-        // Do not accept directories
-        if (file.isDirectory()) {
-            throw new IllegalArgumentException(file + " is a directory");
-        }
         return new ConfigurationLoader(file);
     }
 
@@ -70,7 +65,6 @@ public final class ConfigurationLoader {
      *
      * @param file the string representation of the path to the file that is to be loaded.
      * @return     a new configuration loader.
-     * @throws     IllegalArgumentException if {@code file} is a directory.
      * @since      2.0.0
      */
     public static @NotNull ConfigurationLoader fromFile(@NotNull String file) {
@@ -85,14 +79,9 @@ public final class ConfigurationLoader {
      * @param file      the string representation of the path to the file that
      *                  is to be loaded, relative to the provided directory.
      * @return          a new configuration loader.
-     * @throws          IllegalArgumentException if {@code directory} is not a directory or the
-     *                                           specified {@code file} could not be resolved.
      * @since           2.0.0
      */
     public static @NotNull ConfigurationLoader fromFile(@NotNull File directory, @NotNull String file) {
-        if (!directory.isDirectory()) {
-            throw new IllegalArgumentException(directory + " is not a directory");
-        }
         return fromFile(new File(directory, file));
     }
 
@@ -139,7 +128,8 @@ public final class ConfigurationLoader {
      * Loads the {@link Configuration} as specified within this configuration loader.
      *
      * @return the loaded configuration.
-     * @throws IllegalArgumentException if any problem emerge when creating files and/or directories as specified.
+     * @throws IllegalArgumentException if any problem emerge when creating files
+     *                                  and/or directories as specified.
      * @since  2.0.0
      */
     public @NotNull Configuration load() {

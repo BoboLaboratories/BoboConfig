@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2023-06-04
+- Added support for lower-case enum values in config files.
+
 ## [2.0.0] - 2023-05-22
 - Complete rewrite of the whole library with SnakeYAML for YAML 1.1 as a backend.
 
