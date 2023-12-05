@@ -218,7 +218,7 @@ final class ConfigurationSectionImpl implements ConfigurationSection {
     public @NotNull Set<@NotNull String> getKeys(@NotNull TraversalMode traversalMode) {
         root.readLock().lock();
         try {
-            Set<String> accumulator = new HashSet<>();
+            Set<String> accumulator = new LinkedHashSet<>();
             for (Map.Entry<String, Object> entry : data.entrySet()) {
                 if (traversalMode != TraversalMode.LEAVES || !(entry.getValue() instanceof ConfigurationSection)) {
                     accumulator.add(entry.getKey());
