@@ -64,7 +64,7 @@ publishing {
     repositories {
         maven {
             name = 'BoboLabs'
-            url = 'https://repo.bobolabs.net/repository/maven-releases/'
+            url = 'https://repo.bobolabs.net/releases/'
             credentials {
                 username = project.property('bobolabs.user')
                 password = project.property('bobolabs.key')
