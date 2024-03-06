@@ -1,10 +1,10 @@
 /*
  * This file is part of BoboConfig.
  *
- * Copyright (C) 2024 BoboLabs.net
- * Copyright (C) 2024 Mattia Mignogna (https://stami.bobolabs.net)
- * Copyright (C) 2024 Fabio Nebbia (https://glowy.bobolabs.net)
- * Copyright (C) 2024 Third party contributors
+ * Copyright (C) 2023-2024 BoboLabs.net
+ * Copyright (C) 2023-2024 Mattia Mignogna (https://stami.bobolabs.net)
+ * Copyright (C) 2023-2024 Fabio Nebbia (https://glowy.bobolabs.net)
+ * Copyright (C) 2023-2024 Third party contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -115,7 +115,7 @@ public final class ConfigurationManager<T extends Enum<T> & ConfigurationDescrip
 
 
     /**
-     * Reloads any previously loaded {@link Configuration}.
+     * Reloads any previously loaded {@link Configuration}s.
      *
      * @since 2.2.0
      */

@@ -1,9 +1,9 @@
 This file is part of ${projectName}.
 
-Copyright (C) ${year} BoboLabs.net
-Copyright (C) ${year} Mattia Mignogna (https://stami.bobolabs.net)
-Copyright (C) ${year} Fabio Nebbia (https://glowy.bobolabs.net)
-Copyright (C) ${year} Third party contributors
+Copyright (C) 2023-${year} BoboLabs.net
+Copyright (C) 2023-${year} Mattia Mignogna (https://stami.bobolabs.net)
+Copyright (C) 2023-${year} Fabio Nebbia (https://glowy.bobolabs.net)
+Copyright (C) 2023-${year} Third party contributors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
