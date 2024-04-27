@@ -84,7 +84,7 @@ dependencies {
 ### Full fledged usage
 
 Describe the configuration files you need by declaring enum fields optionally marked with `@Config`.  
-`@Config` accepts several options to meet your needs, find out more [here](TODO).
+`@Config` accepts several options to meet your needs, find out more [here](https://repo.bobolabs.net/javadoc/releases/net/bobolabs/config/config/2.2.0).
 
   ```java
   public enum Configs implements ConfigurationDescription {
