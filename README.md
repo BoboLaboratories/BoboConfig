@@ -35,16 +35,16 @@ A thread-safe YAML 1.1 configuration library which provides reload and auto-save
 
 ### Usage
 
-Here are the full [Javadocs](https://docs.bobolabs.net/config/).
+Here you can find the full [Javadocs](https://repo.bobolabs.net/javadoc/releases/net/bobolabs/config/config/2.2.0).
 
 #### Gradle
 ```gradle
 repositories {
-    maven { url = 'https://repo.bobolabs.net/repository/maven-public/' }
+    maven { url = 'https://repo.bobolabs.net/releases' }
 }
 
 dependencies {
-    implementation 'net.bobolabs.config:config:2.0.0'
+    implementation 'net.bobolabs.config:config:2.2.0'
 }
 ```
 
@@ -52,8 +52,8 @@ dependencies {
 ```xml
 <repositories>
     <repository>
-        <id>BoboLabs</id>
-        <url>https://repo.bobolabs.net/maven-public/</url>
+        <id>bobolabs-releases</id>
+        <url>https://repo.bobolabs.net/releases</url>
     </repository>
 </repositories>
 
@@ -61,7 +61,7 @@ dependencies {
     <dependency>
         <groupId>net.bobolabs.config</groupId>
         <artifactId>config</artifactId>
-        <version>2.0.0</version>
+        <version>2.2.0</version>
     </dependency>
 </dependencies>
 ```
